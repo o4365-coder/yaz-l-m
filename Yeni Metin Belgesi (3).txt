@@ -1,0 +1,670 @@
+
+SQL : Structured Query Language
+Yapısal sorgulama dili
+
+veriler sql ortamında tutulur
+
+tablo yapıları oluşturulur
+tablo içerisinde kolonlar bulunur
+veriler eklenir
+
+Veri Nedir?
+data: uygulamada gözükecek olan bilgiler
+
+Veri Saklama Yöntemleri?
+kağıt kalem
+flash 
+drive
+cdler,kaset,harddisk
+icloud
+excel
+mail atma
+serverlar(sunucu)
+not defteri
+
+MSSQL (sql : veri saklama)
+MYSQL, Oracle
+
+MSSQL: microsoft SQL 
+
+Veritabanı
+Verileri saklamak için kullanılan proje bazında açılan ortamlar.
+Database : veritabanı
+Tables   : tablolar
+
+Database->Tablolar
+
+EticaretDB : projenin database yapısı
+CalisanKisi Table
+Urun Table
+Kargo Table
+Muhasebe Table
+Satis Table
+Admin Table
+Sepet Table
+UrunKombinasyon Table
+Siparis Table
+Tedarikci Table
+Kategori Table
+EticaretOnlineMagaza Table
+Reklam Table
+Iade Table
+Indirim Table
+Kampanya Table
+Kullanici Table
+Zopim Table(online destek)
+OdemeYontemleri Table
+SaticiFirma Table
+
+TSQL 
+Transact SQL = SQL
+
+1.DDL (Data Definition Language: veri tanımlama dili)
+create:oluşturma, alter:düzenlemek, drop:silmek
+
+create database veritabaniAdi
+create database EticaretDB
+
+create table Urun
+(
+ --urun tablosunun alanları tek tek tek tanımlanır.
+)
+
+schema
+dbo 
+tabloları kendi içerisinde gruplandırmak istersek kullanılır.
+create schema schemaadı
+Production.Product
+Production.ProductDetails
+Production.Discount
+
+schemaAdı : production
+Tablo Adı : product,productDetails,Discount
+
+yetkilendirme için ve güvenlik için kullanılır.
+muhasebe ya da satış tarafındaki bilgileri herkes görmesin isteriz. Bu durumda kullanıcılara schema seviyesinde yetki verilir.
+
+Schema altında 10 tane tablo var ise, eğer schema yapısı olmamış olsaydı gidip 10 tabloya tek tek yetki vermek gerekirdi. Bunun yerine schema'ya yetki vermemiz durumunda altındaki tüm tablolara yetki verilmiş olur
+
+Kisi tablosu:
+Kisi:ad,soyad,email,telefon
+
+
+kisi tablosuna memleket kolonu eklemeyi unutmuşuz.
+bu durumda bu tabloya memleket kolonu eklemek için
+ 
+alter table Kisi add Memleket nvarchar(30)
+nvarchar(30) : metinsel değerler, 
+
+eğer kolonun türünü değiştirmek istersek
+alter table Kisi alter column Memleket nvarchar(20)
+
+eğer kolonu silmek istersek
+alter table Kisi drop column Memleket
+
+drop: silme işlemi yapar
+drop table Kisi -- kisi tablosunu siler.
+drop database EticaretDB -- EticaretDB'yi siler.
+
+2.DCL : Data Control Language : veri kontrol dili
+grant : yetki vermek
+deny  : yetkiyi silmek, yetkiyi almak
+revoke: yetkileri en baştaki haline cevirmek
+
+3.DML : Data Manipulation Language : veri işleme dili
+--select,insert,update,delete
+
+select: getir,tablodaki kayıtları getirmek için kullanılır
+select * from tabloAdi
+
+select * from Products : urunler tablosundan bütün kolonları. * = bütün kolonlar
+
+urunlerin sadece adlarını görmek istersek
+SELECT ProductName FROM Products;
+
+müşterilerin şehir bilgilerini getiirinz
+SELECT City FROM Customers;
+
+--eğer tablodan 2 kolon çekmek istersek
+SELECT City,Country FROM Customers;
+
+--urunler tablosundan urunlerin adlarını ve fiyat kolonlarını getirelim.
+SELECT ProductName,Price FROM Products;
+
+--urun adı,fiyatı ve kategoriadi,açıklama sorgularını yazıp çalıştırınz
+SELECT CategoryName, Description, ProductName, Price FROM Categories, Products;
+
+--filtreleme yapacaksak, kırmızı renkli ürün, ürün adı Chang olan, kategorisi beverages olan kayıtları getiriniz.
+--where
+select * from tabloAdi where kolonAdi='kontrol edilecek değer'
+
+SELECT * FROM Products where ProductName='chang'
+
+--employees tablosunda soyadı Peacock  olan kayıtları getiriniz.
+SELECT * FROM Employees where LastName='Peacock';
+
+--kategori adı Beverages olan ürünlerin adlarını ve fiyatlarını getiriniz.
+1.kategori tablosuna gidip Beverages kategorisinin id bilgisini bul
+--SELECT CategoryId FROM Categories where CategoryName='Beverages'
+2.urunler tablosunda categoryid bilgisi 1 olanı getir
+select * from Products where CategoryId=1
+--2.yol 
+SELECT ProductName,Price,CategoryName FROM Categories,Products where CategoryName='Beverages';
+
+--supplier bilgisi Exotic Liquid olan ürünleri getiriniz.
+select * from Products where SupplierId=
+(SELECT SupplierId FROM Suppliers where SupplierName='Exotic Liquid ')
+select * from Products where SupplierID = 1;
+
+
+--eğer sql tarafında 2 koşul aynı anda denetlenecekse
+--baglaç : and /or
+--and : kosul1 and kosul2
+
+--select * from tabloAdi where ad='Ali' --adı ali olanları getirir.
+--eğer 2 koşul 1 aradaysa and baglacı kullanılır
+
+select * from tabloAdi where ad='ali' and soyad='yazıcı' --adı ali soyadı yazıcı olanları getirir.
+
+--gamze veya hatice olanları getiriniz.
+--or :
+select * from tabloAdi ad='gamze' or ad='hatice'
+
+
+--fiyatı 18den büyük olanları getiriniz.
+--karşılaştırma operatörleri
+-- = eşit mi
+-- != eşit değil mi
+-- <> eşit değil mi
+-- <  küçüktür
+-- > büyüktür
+-- <= küçük eşit
+-- >= büyük eşit
+
+ 
+fiyat>18
+SELECT * FROM Products where price>18 
+
+
+fiyat>18 aynı zamanda CategoryId=2 olanları getiriniz
+SELECT * FROM Products where price>18 and CategoryId=2
+
+
+ürün adı Chang ve Chais olanları getiriniz.
+SELECT * FROM Products where ProductName='Chang' or ProductName='Chais'
+
+
+Germany ve mexico'da yaşayanları getiriniz.
+SELECT * FROM Customers where Country='Germany' or Country='Mexico'
+
+almanyada ya da meksikada yaşayan kişilerden ContactName bilgisi Maria Anders olanları getiriniz.
+SELECT * FROM Customers where (Country='Germany' or Country='Mexico') and ContactName='Maria Anders'
+
+--not
+--baglaçlarımız and/or
+select * from Kitap where Yayinevi='can'
+
+--can ve xx yayinevindeki kitapları getiriniz.
+select * from Kitap where Yayinevi='can' or Yayinevi='xx'
+
+--can ve xx yayinevindeki kitapları getirirken yazarı Ayşe Kulin olanları getiriniz.
+select * from Kitap where Yayinevi='can' or Yayinevi='xx' and YazarAdi='Ayşe Kulin'
+
+eğer koşul yazarken and/or baglacı birlikte kullanılmışsa bu durumda and > or (and daha baskındır or'a göre)
+and tarafı önce çalışır.
+1.Yayinevi='xx' and YazarAdi='Ayşe Kulin'
+2.Yayinevi='can' or 1den dönen sonuç
+
+select * from Kitap where (Yayinevi='can' or Yayinevi='xx') and YazarAdi='Ayşe Kulin'
+
+--a ile başlayan kitaplar
+select * from Kitap where like 'a%' --a ile başlar, %=herhangibir harf gelebilir
+
+--müşteri tablosundan a harfi ile başlayanları getiriniz.
+SELECT * FROM Customers where CustomerName like 'a%'
+
+--ürün tablosundan ürün adı g harfi ile başlayanları getiriniz.
+Products    : Urun tablosu
+ProductName : UrunAdı
+
+select * from Urun where UrunAdi like 'g%'    --türkçe
+select * from Products where ProductName like 'g%' --ingilizce
+
+--e harfi ile biten
+Urun tablosunda urunadı e harfi ile biten ürünleri bulunuz.
+select * from Urun where UrunAdi like '%e'
+
+--adının içerisinde a harfi geçenler
+--like 'a%'  a ile başlayan
+--like '%a'  a ile biten
+--like '%a%' içerisinde a harfi bulunan
+select * from Urun where UrunAdi like '%a%'
+select * from Products where ProductName like '%a%'
+
+
+
+select * from Kisiler where Ad like '_a'  -- 2 harfli ve 2.harfi a olan
+
+--ikinci harfi a olan
+select * from Kisiler where Ad like '_a%'  --2.harfi a olanları getirir.
+
+-- %  : herhangi bir harf gelebilir
+-- _ : a harfinden önce 1 harf olmak zorundadır.
+
+--sondan 3.harfi e olan kayıtları getiriniz.
+--like '%e__'
+
+
+--ürün adı I harfi ile başlayan sondan 2.harfi r olan sorguyu yazınız.
+select * from Urun where UrunAdı like 'I%r_'
+select * from Products where ProductName  like 'I%r_'
+
+
+
+--Proje
+--1.c# core (temel programlama)
+--2.sql     (data)
+--3.entity framework-adonet (sql-c# baglanma modülü)
+--4.web arayüzü(html-css-js)
+--5.codefirst 
+--6.api
+
+
+SQL Oluşturma kodları
+
+
+CREATE TABLE [dbo].[Ogrenci](
+	[Ad] [nvarchar](25) NOT NULL,
+	[Soyad] [nvarchar](25) NOT NULL,
+	[OgrenciNo] [nchar](10) NOT NULL,
+	[Memleket] [nvarchar](50) NULL,
+	[Bolumu] [nvarchar](100) NOT NULL,
+	[Adres] [nvarchar](max) NULL
+)
+
+
+INSERT INTO ogrenci (Ad, Soyad, OgrenciNo, Memleket, Bolumu, Adres) VALUES
+('Ahmet', 'Yılmaz', 1001, 'İstanbul', 'Bilgisayar Mühendisliği', 'Kadıköy, İstanbul'),
+('Ayşe', 'Demir', 1002, 'Ankara', 'Elektrik-Elektronik', 'Çankaya, Ankara'),
+('Mehmet', 'Kaya', 1003, 'İzmir', 'Makine Mühendisliği', 'Bornova, İzmir'),
+('Elif', 'Şahin', 1004, 'Bursa', 'İnşaat Mühendisliği', 'Nilüfer, Bursa'),
+('Can', 'Koç', 1005, 'Antalya', 'Mimarlık', 'Muratpaşa, Antalya'),
+('Zeynep', 'Aydın', 1006, 'Adana', 'Endüstri Mühendisliği', 'Seyhan, Adana'),
+('Ali', 'Çelik', 1007, 'Konya', 'İşletme', 'Selçuklu, Konya'),
+('Fatma', 'Arslan', 1008, 'Gaziantep', 'Hukuk', 'Şahinbey, Gaziantep'),
+('Burak', 'Öztürk', 1009, 'Samsun', 'Tıp', 'Atakum, Samsun'),
+('Selin', 'Kurt', 1010, 'Eskişehir', 'Psikoloji', 'Tepebaşı, Eskişehir'),
+('Emre', 'Polat', 1011, 'Kayseri', 'Matematik', 'Melikgazi, Kayseri'),
+('Ceren', 'Bozkurt', 1012, 'Trabzon', 'Fizik', 'Ortahisar, Trabzon'),
+('Mert', 'Erdoğan', 1013, 'Mersin', 'Kimya', 'Yenişehir, Mersin'),
+('Nazlı', 'Güneş', 1014, 'Malatya', 'Biyoloji', 'Yeşilyurt, Malatya'),
+('Hakan', 'Aksoy', 1015, 'Manisa', 'Sosyoloji', 'Yunusemre, Manisa'),
+('Melis', 'Kara', 1016, 'Denizli', 'Tarih', 'Pamukkale, Denizli'),
+('Onur', 'Özdemir', 1017, 'Erzurum', 'Felsefe', 'Yakutiye, Erzurum'),
+('Ece', 'Yıldırım', 1018, 'Sivas', 'Gazetecilik', 'Merkez, Sivas'),
+('Tuna', 'Balcı', 1019, 'Aydın', 'Uluslararası İlişkiler', 'Efeler, Aydın'),
+('Derya', 'Kılıç', 1020, 'Kocaeli', 'İktisat', 'İzmit, Kocaeli'),
+('Kerem', 'Uçar', 1021, 'Tekirdağ', 'Finans', 'Süleymanpaşa, Tekirdağ'),
+('Buse', 'Taş', 1022, 'Hatay', 'Maliye', 'Antakya, Hatay'),
+('Arda', 'Ergin', 1023, 'Rize', 'İstatistik', 'Merkez, Rize'),
+('İrem', 'Yalçın', 1024, 'Afyon', 'Eczacılık', 'Merkez, Afyon'),
+('Deniz', 'Özkan', 1025, 'Kütahya', 'Veterinerlik', 'Merkez, Kütahya'),
+('Sena', 'Turan', 1026, 'Çorum', 'Hemşirelik', 'Merkez, Çorum'),
+('Baran', 'Gül', 1027, 'Elazığ', 'Diş Hekimliği', 'Merkez, Elazığ'),
+('Gamze', 'Sezer', 1028, 'Isparta', 'Rehberlik ve Psikolojik Danışmanlık', 'Merkez, Isparta'),
+('Tolga', 'Özer', 1029, 'Kars', 'Sınıf Öğretmenliği', 'Merkez, Kars'),
+('Yasemin', 'Dinç', 1030, 'Artvin', 'Okul Öncesi Öğretmenliği', 'Merkez, Artvin');
+
+
+
+--select : veri getir
+select * from Ogrenci -- bütün kayıtları ve bütün kolonlarını getirir.
+
+--ankaralı öğrencileri getiriniz.
+select * from Ogrenci where Memleket='ankara'
+
+--yazılım bolumunde okumayan öğrenciler
+--!= eşit olmama durumunu kontrol edebilirm
+--where Bolumu != 'yazılım'
+select * from Ogrenci where Bolumu!=N'yazılım'
+
+--N: ı harfini alamadığı için başına ekledik.
+
+--adres bilgisi afyon ya da elazığ olanları getiriniz
+select * from Ogrenci where Adres like '%afyon' or Adres like '%elazığ'
+
+--kişilerin adında 2.harfi a olan kayıtlar
+-- like '_a%'
+select * from Ogrenci where Ad like '_a%'
+
+ 
+
+--ogrenci numarasında 3 geçmeyenler
+--like : geçenleri getirir
+--not like : geçmeyenleri
+
+select * from Ogrenci where OgrenciNo not like '%3%'
+
+--memleket bilgisi A,B,C,Ç,D,E ile başlayanları getiriniz.
+select * from Ogrenci where Memleket>='A' and Memleket<'F'
+
+--eğer gelen datanın sırasını değiştirmek istersek order by kullanılır.
+select * from Ogrenci where Memleket>='A' and Memleket<'F'
+order by Memleket
+
+--15dk mola 18.57 mola dönüşü
+
+
+
+
+create database UniversiteDBKodla
+
+
+
+02.11.2025 ders notları 
+
+--w3schools üzerinden sql kodları 
+
+--select * from tabloAdı 
+
+--koşul varsa where kullanıldı
+--like 'a%' .... a ile başlayanlar
+--like '%e' .... e harfi ile bitenler
+--like '%p%' .... içerisinde p harfi geçenler
+
+--like '_e%' .... _ : harf sırasını, % joker harfi belirler
+
+
+--like '%r_' .... : herhangi bir harfle başlayan ve sondan 2.harfi r olan kayıtlar
+
+
+--SQL : programın verilerinin tutuldugu ortamdır.
+--database,tables,view,stored procedure,function,trigger  veri tabanı nesneleri
+
+--SQL Server içersinde database yapısı tanımlanır.
+--SQL Server Management Studio : sql'e baglanma programını kullanırız.
+
+create database UniversiteDBKodla
+
+--database oluşturmak için 
+--1.yol
+create database UniversiteDB
+
+--2.yol
+--Databases->sag tıkla->New Database->UniversiteDB -> ok diyip oluşturduk
+
+
+--database içerisine tablo oluşturma
+--1.yol
+--arayüz
+--metinsel veriler :nvarchar(50) içerisinde tutulur.
+--n : national
+--varchar(50) : 50 karakterlik veriyi tutabilecek bir alan
+
+--nvarchar(30) : maks 30 harf tutar.
+
+--arayüzden tablo oluşturmak için Tables->New Table->kolonlar tek 
+--tek belirlenir.
+--Ogrenci(ad,soyad,telefon,memleket,adres,bolumu,ogrencino)
+
+--2.eğer kodla oluşturmak istersek
+create table OgrenciKodlaTablo
+(
+ad nvarchar(35) not null, -- boş geçilemez: not null
+soyad nvarchar(35) not null,
+memleket nvarchar(20),
+bolumu nvarchar(50) not null,
+ogrenciNo nchar(10),
+tcno nchar(11)--eğer veri herkes için aynı uzunluktaysa nchar(11)
+)
+
+--ogrenci tablosuna 3 tane kayıt girelim.
+--Ogrenci tablosuna sağ tıkladık->Edit top 200 rows seçtik.
+--gelen ekranda tek tek verilerimizi girdik.
+
+--Ogrenci TAblosunu oluşturma kodları: 
+CREATE TABLE [dbo].[Ogrenci](
+	[Ad] [nvarchar](25) NOT NULL,
+	[Soyad] [nvarchar](25) NOT NULL,
+	[OgrenciNo] [nchar](10) NOT NULL,
+	[Memleket] [nvarchar](50) NULL,
+	[Bolumu] [nvarchar](100) NOT NULL,
+	[Adres] [nvarchar](max) NULL
+)
+
+
+--tabloya kayıt ekleme kodları:
+INSERT INTO ogrenci (Ad, Soyad, OgrenciNo, Memleket, Bolumu, Adres) VALUES
+('Ahmet', 'Yılmaz', 1001, 'İstanbul', 'Bilgisayar Mühendisliği', 'Kadıköy, İstanbul'),
+('Ayşe', 'Demir', 1002, 'Ankara', 'Elektrik-Elektronik', 'Çankaya, Ankara'),
+('Mehmet', 'Kaya', 1003, 'İzmir', 'Makine Mühendisliği', 'Bornova, İzmir'),
+('Elif', 'Şahin', 1004, 'Bursa', 'İnşaat Mühendisliği', 'Nilüfer, Bursa'),
+('Can', 'Koç', 1005, 'Antalya', 'Mimarlık', 'Muratpaşa, Antalya'),
+('Zeynep', 'Aydın', 1006, 'Adana', 'Endüstri Mühendisliği', 'Seyhan, Adana'),
+('Ali', 'Çelik', 1007, 'Konya', 'İşletme', 'Selçuklu, Konya'),
+('Fatma', 'Arslan', 1008, 'Gaziantep', 'Hukuk', 'Şahinbey, Gaziantep'),
+('Burak', 'Öztürk', 1009, 'Samsun', 'Tıp', 'Atakum, Samsun'),
+('Selin', 'Kurt', 1010, 'Eskişehir', 'Psikoloji', 'Tepebaşı, Eskişehir'),
+('Emre', 'Polat', 1011, 'Kayseri', 'Matematik', 'Melikgazi, Kayseri'),
+('Ceren', 'Bozkurt', 1012, 'Trabzon', 'Fizik', 'Ortahisar, Trabzon'),
+('Mert', 'Erdoğan', 1013, 'Mersin', 'Kimya', 'Yenişehir, Mersin'),
+('Nazlı', 'Güneş', 1014, 'Malatya', 'Biyoloji', 'Yeşilyurt, Malatya'),
+('Hakan', 'Aksoy', 1015, 'Manisa', 'Sosyoloji', 'Yunusemre, Manisa'),
+('Melis', 'Kara', 1016, 'Denizli', 'Tarih', 'Pamukkale, Denizli'),
+('Onur', 'Özdemir', 1017, 'Erzurum', 'Felsefe', 'Yakutiye, Erzurum'),
+('Ece', 'Yıldırım', 1018, 'Sivas', 'Gazetecilik', 'Merkez, Sivas'),
+('Tuna', 'Balcı', 1019, 'Aydın', 'Uluslararası İlişkiler', 'Efeler, Aydın'),
+('Derya', 'Kılıç', 1020, 'Kocaeli', 'İktisat', 'İzmit, Kocaeli'),
+('Kerem', 'Uçar', 1021, 'Tekirdağ', 'Finans', 'Süleymanpaşa, Tekirdağ'),
+('Buse', 'Taş', 1022, 'Hatay', 'Maliye', 'Antakya, Hatay'),
+('Arda', 'Ergin', 1023, 'Rize', 'İstatistik', 'Merkez, Rize'),
+('İrem', 'Yalçın', 1024, 'Afyon', 'Eczacılık', 'Merkez, Afyon'),
+('Deniz', 'Özkan', 1025, 'Kütahya', 'Veterinerlik', 'Merkez, Kütahya'),
+('Sena', 'Turan', 1026, 'Çorum', 'Hemşirelik', 'Merkez, Çorum'),
+('Baran', 'Gül', 1027, 'Elazığ', 'Diş Hekimliği', 'Merkez, Elazığ'),
+('Gamze', 'Sezer', 1028, 'Isparta', 'Rehberlik ve Psikolojik Danışmanlık', 'Merkez, Isparta'),
+('Tolga', 'Özer', 1029, 'Kars', 'Sınıf Öğretmenliği', 'Merkez, Kars'),
+('Yasemin', 'Dinç', 1030, 'Artvin', 'Okul Öncesi Öğretmenliği', 'Merkez, Artvin');
+
+
+
+--select : veri getir
+select * from Ogrenci -- bütün kayıtları ve bütün kolonlarını getirir.
+
+--ankaralı öğrencileri getiriniz.
+select * from Ogrenci where Memleket='ankara'
+
+--yazılım bolumunde okumayan öğrenciler
+--!= eşit olmama durumunu kontrol edebilirm
+--where Bolumu != 'yazılım'
+select * from Ogrenci where Bolumu!=N'yazılım'
+
+--N: ı harfini alamadığı için başına ekledik.
+
+--adres bilgisi afyon ya da elazığ olanları getiriniz
+select * from Ogrenci where Adres like '%afyon' or Adres like '%elazığ'
+
+--kişilerin adında 2.harfi a olan kayıtlar
+-- like '_a%'
+select * from Ogrenci where Ad like '_a%'
+
+ 
+
+--ogrenci numarasında 3 geçmeyenler
+--like : geçenleri getirir
+--not like : geçmeyenleri
+
+select * from Ogrenci where OgrenciNo not like '%3%'
+
+--memleket bilgisi A,B,C,Ç,D,E ile başlayanları getiriniz.
+select * from Ogrenci where Memleket>='A' and Memleket<'F'
+
+--eğer gelen datanın sırasını değiştirmek istersek order by kullanılır.
+select * from Ogrenci where Memleket>='A' and Memleket<'F'
+order by Memleket
+
+--or : veya baglacına karşılık gelir.
+--Ogrencino bilgisi 1019,1027,1016,123456 veya 1006 olan kayıtları getiriniz.
+select * from Ogrenci 
+where OgrenciNo='1019' or OgrenciNo='1027' or OgrenciNo='1016' or OgrenciNo='123456'
+or OgrenciNo='1006'
+
+--in() : eğer or baglacının sayısı artmışsa in kullanılabilir.
+select * from Ogrenci 
+where OgrenciNo in('1019','1027','1016','123456','1006')
+
+--ogrenci tablosuna Bolum Ucreti diye bir kolon ekleyelim.
+alter table Ogrenci add BolumUcreti money
+
+--kafama göre birkaçtane öğrenciye 15000,30000,40000 datalarını ekledik.
+
+--bolum ücret bilgisi 25000 ile 30000 aralıgında olanları getiriniz.
+--bolumucret>=25000 and bolumucret<=30000
+--1.yol
+select * from Ogrenci where BolumUcreti>=25000 and BolumUcreti<=30000
+
+--2.yol
+--between 
+select * from Ogrenci where BolumUcreti between 25000 and 30000
+
+
+--ogrencino bilgisi 1009 ile 1030 arasında olmayanlar
+--ogrencino alanı metinsel olarak tanımlamışız
+--acaba between metinsel ifadelerde de kullanılır mı?
+--1009 .....1030 (1009 ve 1030 sonuç kümesinde gözükmeli)
+select * from Ogrenci where OgrenciNo between 1009 and 1030
+
+--memleket adının ilk harfi E ile K arasındaki bütün harflerle başlayan
+--Elazığ,Isparta,...Kars kayıtları getiriniz
+select * from ogrenci where memleket between 'e' and 'l'
+order by Memleket
+
+--e ile K arasında olmayan harflerle başlayan öğrencileri getiriniz.
+--not
+select*from Ogrenci where Memleket not between 'e' and 'l'
+
+--bolum ucretlerinin ortalaması
+--avg(kolonAdi): ortalama bulur
+select avg(BolumUcreti) from Ogrenci 
+
+--bütün bolumucretlerinin toplamı
+--sum(kolonAdi)
+select sum(BolumUcreti) from Ogrenci
+
+--en küçük değeri
+--min(kolonAdi)
+select min(BolumUcreti) from Ogrenci
+
+--en büyük değeri 
+--max(kolonAdi)
+select max(BolumUcreti) from Ogrenci
+
+
+--kayıt adedini bulunuz
+--count(*)
+select count(*) from Ogrenci --33 kayıt adedi.
+
+--ogrenci tablosunda 
+
+
+
+--150000,00  --max
+--15000,00   --min
+
+
+--OgrenciNo bilgisi için min ve max değerleri bulalım.
+select min(OgrenciNo) from Ogrenci
+
+select max(OgrenciNo) from Ogrenci
+
+
+--ogrenci tablosunda Mühendislik okumayan öğrencilerin adedi kaç tanedir?
+--count(*) ..... where Mühendislik okumayan
+
+
+select count(*) from Ogrenci 
+where Bolumu not like '%mühendisligi'
+
+
+
+--len() : length: uzunluk demektir.
+--kolondaki datalara bakar ve kaç karakterden oluştugunun bilgisini verir.
+select Ad, len(Ad) from Ogrenci
+
+
+--isimlerinin uzunlugu 4 ile 6 arasında olan kayıtların alfabetik sıralı 
+--gelmesini sağlayınız
+--where len(kolonAdı)>=4 and  len(kolonAdı)<=4 --isme göre uzunluğa bakıp 
+--4 ile 6 aralıgında olanları bulur
+--order by kolonAdı --sıralar.
+
+select * from Ogrenci
+where len(ad)>=4 and len(ad)<=6
+order by OgrenciNo
+
+--substring(kolonAd,başlangıçsira,adet): 
+select substring(ad,1,1),Ad from Ogrenci
+
+--ada
+--elif
+--seda
+--ceren
+--12345
+
+--metni parçalayıp istediğim sıradaki harfi almak istersem bu durumda substring():
+
+--sub: alt
+--string: metinsel ifadeler
+--substring(): bir metnin bnm istediğim yerdeki harfini ya da harflerini al.
+
+
+--adlarının ilk 2 harfini,soyadlarının ilk 1 harfiini getirip gösteriniz
+select substring(ad,1,2), Ad, substring(soyad,1,1),Soyad from Ogrenci
+
+--2 veriyi birleştirmek için + kullanılır.
+select ad+soyad from Ogrenci
+
+--luna şirketinin çalışanlarının bilgileri ogrenci tablosunda tutulmaktadır.
+--adınınilkharfi.soyadı@luna.com formatıyla herkes için bir mail adresi oluşturacak kodu 
+--yazınız.
+
+select substring(ad,1,1)+ '.'+ soyad+'@luna.com' Email,Ad,Soyad from Ogrenci
+select substring(ad,1,1)+ '.'+ soyad+'@luna.com' as Email,Ad,Soyad from Ogrenci
+
+
+--as :alias: takma isim
+--kolona bir isim vermek istediğimizde as kullanabilir ya da kullanmayabiliriz
+
+
+--adı a harfi ile başlayan kayıtları substring kullanarak bulabilir misiniz? 
+select * from Ogrenci where Ad like 'a%'
+
+select *from Ogrenci where SUBSTRING(ad,1,1)='a'
+
+--bolumucreti null olan kayıtları getiriniz.
+--kolonadi = deger
+--null : veri girilmeme durumu, boş geçilme durumu
+select *from Ogrenci where BolumUcreti is null
+
+--null veri is null denilerek kontrol edilir.
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
