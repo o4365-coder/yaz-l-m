@@ -1,0 +1,79 @@
+https://collectapi.com/auth/email/signin/edf8fce9-3569-4f0a-8402-31275628a63e
+
+
+
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using System.ComponentModel.Design;
+using System.Runtime.InteropServices.JavaScript;
+
+//kullanıcıdan en başta haber mi şans oyunları mı seçimi yaptırın
+//eğer 1.haber seçmişse bu alttaki kodu, 2.şans oyunları seçmişse bu durumda şans oyunlarından herhangi bir metodunu çağırıp gösterelim.
+
+//string secim;
+//Console.WriteLine("1.haber");
+//Console.WriteLine("2.şans oyunları");
+//secim=Console.ReadLine();
+
+//if(secim=="1" || secim == "haber")
+//{
+//    var client = new RestClient("https://api.collectapi.com/news/getNews?country=tr&tag=general");
+//    var request = new RestRequest();
+//    request.AddHeader("authorization", "apikey 60tdNjiQDmSkDWyzRy0Jq0:01SZtp19rrUo2H3bnxcuIj");
+//    request.AddHeader("content-type", "application/json");
+//    RestResponse response = client.Execute(request);
+
+
+//    JObject json = JObject.Parse(response.Content);
+//    var newList = json["result"];
+//    Console.WriteLine("Haberler");
+//    foreach (var item in newList)
+//    {
+//        Console.WriteLine(item["description"]);
+//        Console.WriteLine("----------------------");
+//    }
+
+
+//}
+//else if(secim=="2" || secim=="şans oyunları")
+//{
+//    var client = new RestClient("https://api.collectapi.com/chancegame/sanstopu");
+//    var request = new RestRequest();
+//    request.AddHeader("authorization", "apikey 60tdNjiQDmSkDWyzRy0Jq0:01SZtp19rrUo2H3bnxcuIj");
+//    request.AddHeader("content-type", "application/json");
+//    RestResponse response = client.Execute(request);
+
+
+//    JObject json = JObject.Parse(response.Content);
+//    var newList = json["result"];
+//    Console.WriteLine("şans oyunları");
+//    foreach (var item in newList)
+//    {
+//        Console.WriteLine(item["rakamlar"]);
+//        Console.WriteLine("----------------------");
+//    }
+
+//}
+
+//openweather 
+//https://api.openweathermap.org/data/2.5/weather?q=London&appid=7a92ce2a13a8e0b383dc773223ce2f86
+
+
+var client = new RestClient("https://api.openweathermap.org/data/2.5/weather?q=London&appid=7a92ce2a13a8e0b383dc773223ce2f86");
+var request = new RestRequest();
+//request.AddHeader("authorization", "apikey 60tdNjiQDmSkDWyzRy0Jq0:01SZtp19rrUo2H3bnxcuIj");
+request.AddHeader("content-type", "application/json");
+RestResponse response = client.Execute(request);
+
+
+JObject json = JObject.Parse(response.Content);
+
+double deger=(double)json["main"]["temp"];
+Console.WriteLine("şuanki sıcaklık:"+(deger-273.15));
+Console.WriteLine("hello");
+
+
+//parametre olarak  kelvin türünden sıcaklık bilgisini alan ve celcius santigrat dereceye ceviren metodu yazalım.
+//kelvinderecesi-273.15 ile celcius karşılıgını buluruz.
+
+
