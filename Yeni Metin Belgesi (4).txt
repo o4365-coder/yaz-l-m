@@ -1,0 +1,218 @@
+--sql kodlarını buraya yazıyoruz (yorum satırı -- ile yazılır)
+
+--tablo oluşturduk
+select * from Ogrenci
+
+--where ile koşul denetimi yapılır.
+--eczacılık bölümünde okuyan öğrencileri getiriniz.
+select * from Ogrenci where Bolumu='Eczacılık'
+
+--len() : length() anlamına gelir. uzunluk demektir.
+
+--ogrenci tablosunda adının uzunlugu 5 karakterden fazla olan kayıtları 
+--getiriniz.
+
+select len('adana')--adana metninin harf uzunlugunu hesaplar.
+
+--her bir öğrenci için ad uzunlugunu bul,
+--where tarafında koşul olarak len(ad)>5
+
+select ad,len(ad) from Ogrenci where len(ad)>5
+
+--charindex
+select CHARINDEX('a','izmir')  -- izmir içerisinde a harfi var mı, varsa sırano bilgisi
+--izmir
+--12345
+
+select CHARINDEX('z','izmir')
+--charindex(arananHarf,kelime) : şu kelimede şu harf var mı? varsa sıra numarası nedir
+
+--kişilerin adlarında e harfi olanları getiriniz.
+--like ''
+--charindex kullanarak yapılabilir.
+
+select * from Ogrenci where ad like '%e%'  --eda,ceren,defne
+
+
+--eğer aradıgım harf ilgili kelime içerisinde yoksa bu durumda 0 döner.
+--0 dönmüşse harf yoktur.
+select * from Ogrenci where CHARINDEX('e',ad)>0
+
+--sıralı görmek istersek 
+--order by ad .... ad kolonundaki verileri a'dan z'ye dogru sırala.
+select * from Ogrenci where CHARINDEX('e',ad)>0
+order by ad  --ad bilgisine göre düz sıralama yaptı.
+
+--ogrenci adına göre z harfinden a harfine dogru verileri sıralasak.
+select * from Ogrenci where CHARINDEX('e',ad)>0
+order by ad desc --ters sıralam yaptık
+
+--desc : descending : azalan sıra.. 10 9 8 7 6 5 4 3 2 1 0 , zden a harfine dogru
+--asc  : ascending  : artan sıra .. 1 2 3 4 5 6 7 8 9 10 , a'dan z harfine dogru
+--order by ad .... order by ad asc 
+
+--bolum ücret bilgisini çoktan aza doğru sıralayınız.
+select * from Ogrenci
+order by BolumUcreti desc
+
+--bolum ücreti null olmayanlardan memleketi a harfi içermeyen kayıtları 
+--ogrenci no bilgisine göre sıralayıp getiriniz.
+--not like
+--is not null
+--and baglacı
+--order by ogrencino
+select * from Ogrenci
+where BolumUcreti is not null and Memleket not like '%a%'
+order by OgrenciNo
+
+--adventureworks veri tabanını indirip sql içerisine dahil etmek.
+
+--Adventurwork hazır veri tabanı (bir firmanın verileri de içeren veri tabanı)
+--https://learn.microsoft.com/en-us/sql/samples/adventureworks-install-configure?view=sql-server-ver17
+--yukarıdaki linkten indir.
+
+--object explorer altındaki 1.satırın en sagında SQLServer 16.0.1000 yazıyor.
+--bunu google da sql server 16.0.1000 yazarak ara.
+--sqlserver 2022.
+--2022 olanı indir.
+
+
+
+-- dosyanın uzantısı .bak olan bir yapıda
+-- .bak = backup kısaltması
+-- yedek = backup
+
+--veri tabanlarının yedeği alınır.
+
+--veri tabanı yedeği nasıl alırım?
+--sag tıklayıp ->Tasks->Backup 
+--istediğimiz dosya adresini belirtip backup'ı alabiliriz.
+
+--urunler tablosundan 
+select * from Production.Product
+
+--ürünlerden stok bilgisi 1000den azolan aynı zmnda renk bilgisi girilmemiş olan
+--kayıtları getiriniz.
+select * from Production.Product 
+where SafetyStockLevel<1000 and Color is null
+
+--renk bilgisi siyah,kırmızı ve sarı olanların
+--fiyatı(listprice) 100den büyük olanlarını getiriniz.
+--4 koşul denetimi , 3 baglac ile yazılmalı.
+--kosul1 baglac1 kosul2 baglac2 kosul3 baglac3 kosul4
+
+select * from Production.Product
+where ListPrice>100 and Color in('Black','Red','Yellow')
+order by ListPrice
+
+--left(kolonAd,kaçtane)
+select left('adana',4) --soldan başlar ilk 4 harfi alır.
+--adana
+--son 2 harfi getirin.
+select right('adana',2)--na bilgisini getirir.
+--adana
+
+--Person.Person tablosundan adının son harfi ile soyadının ilk harfi aynı olanları 
+--getiriniz.
+
+select * from Person.Person
+where RIGHT(FirstName,1)=LEFT(LastName,1)
+
+--reverse() : ters cevirir.
+
+
+select reverse('kaan')
+
+
+--urunlerin adlarının ilkharfi,son harfi ve adının tersten yazılmış halini 
+--bulup gösterelim.
+
+--left, right, reverse
+--Production.Product
+
+select left(Name,1),RIGHT(Name,1),REVERSE(name) from Production.Product
+
+select * from PErson.Person
+--bütün veriler için sabit bir 'Yabancı' datasıını Uyruk kolonuna eklemek
+
+select FirstName,LastName,'Yabancı' 'Uyruk' from Person.Person
+
+
+--soyad sonuna o harfi eklemek için
+select FirstName,LastName+'o' from Person.Person
+
+select * from Production.Product
+--ürün fiyatbilgisi: ListPRice
+
+--fiyatı 0 olmayanların fiyat bilgisinin sonuna tl ekleyelim. 10tl (ad,renk,fiyat)
+
+select Name,Color,convert(nvarchar(10),ListPrice)+'tl' from Production.Product
+where ListPrice!=0
+
+--convert(nvarchar(10),ListPrice)
+--dönüştürmek anlamına gelir.
+--Listprice:sayısal bir veridir.
+--convert kullanarak sayısal gelen o veriyi metinsel ifadeye cevirdik.
+
+
+--ürünlerin renkbilgisi null ise sorguda null yerine RenkYok yazdıralım.
+select Color,ISNULL(Color,'renk yok') from Production.Product
+
+--lower(): bütün harfleri küçük harf yapar.
+select LOWER(name) from Production.Product
+
+--upper(): bütün harfleri büyük harf yapar.
+select upper(name) from Production.Product
+
+--adının ilk harfi büyük, son harfi küçük olacak sekilde sadece 
+--bu 2 harfi birleştirip gösteren kod
+--Kalem
+--Km : bu veriyi ekranda göstermeli.
+--Production.Product tablosundaki tüm ürünler için yukarıdaki yapıyı ekle
+--upper(left(name,1)) :ilk harfi buldu büyük harf yaptı
+--lower(right(name,1)) : son harfi buldu ve küçük harf yaptı.
+--2sini+ile birleştir.
+
+select upper(left(name,1))+ lower(right(name,1)) ,name from Production.Product
+
+
+--fiyatının 0dan farklı en küçük fiyat bilgisine sahip olan ürünü bul o fiyattaki 
+--ürünleri getiriniz.
+--
+select * from production.product where listprice =
+(select min(ListPRice) from Production.Product
+where ListPrice!=0)
+
+
+--adının uzunlugu en fazla olan ürünün adını ve fiyatını getiriniz.
+select max(len(name)) from Production.Product
+
+select Name,ListPrice from production.product 
+where len(name)=(select max(len(name)) from Production.Product)
+
+--fiyatı en fazla olan ürünün rengi ile aynı renkteki ürünleri getiriniz.
+
+--1.fiyatı en fazla olan kim ise onu tespit et.max(fiyat)
+--2.bu kaydın rengini bul. (max(fiyat)) renk bul
+--3.bu renkle aynı bilgiye sahip diğer ürünleri bul (o renk ile eşleşen kayıtları bul)
+select * from Production.PRoduct where color in(
+(select Color from Production.Product where ListPrice=
+(select max(ListPrice) from Production.Product )))
+
+--min,max,avg,count(*)
+
+--rengi kırmızı olanların adet bilgisi
+select count(*) from Production.Product where color='red'--38 tane
+
+
+--distinct
+--ürün tablosunda kaç farklı renk kullanılmış
+select distinct color from Production.Product
+
+--tarihsel fonksiyonlar
+select getdate()
+
+--insert,update,delete
+--join
+--group by
+--view,sp,function,trigger
