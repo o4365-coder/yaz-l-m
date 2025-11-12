@@ -1,0 +1,133 @@
+select * from Production.Product
+
+--avg() :
+--ortalama bulmaya yarar.
+--avg(kolonAdi) : o kolondaki datalara bakıp ortalamayı hesaplar.
+
+--fiyat bilgisi 0dan farklı olan ürünlerin ortalamasını bulunuz.
+--avg(ListPrice) : listprice bilgisinin ortalamasını hesaplar.
+--where ListPrice!=0 : 0dan farklı olan ürünleri getirir.
+--select avg(kolonAdi) from tabloAdi where...
+select avg(ListPRice) from Production.Product
+where ListPrice!=0
+
+--fiyat bilgisi ortalama fiyatttan yüksek olan kayıtların bilgilerini getiriniz.
+--1.iç sorgu ile ortalama fiyatı hesapla
+select avg(ListPRice) from Production.Product
+where ListPrice!=0   --727.2624
+--2.dış sorgu ile where kriterini kullanarak ortalamadan daha büyük olan 
+--kayıtları tespit et
+--iç içe select yapısını kullanmak gerekir.
+--select * from tabloAdi where kosul>(iç sorgu)
+
+select * from Production.Product where ListPrice>(select avg(ListPRice) from Production.Product
+where ListPrice!=0)
+order by ListPrice
+
+--renk bilgisi mavi, sarı olmayan kayıtları getiriniz.
+--production.product
+--color 
+--mavi ve renk bilgisi sarı olmayan kayıtları getiriniz.
+
+select * from Production.Product
+where Color not in('Yellow','Blue')
+
+--ürün tablosunda kaç farklı beden kullanılmış.
+select distinct size from Production.Product
+
+--beden bilgisii L içeren ya da 38 olanları getiriniz.
+--L,XL,38
+--or ile yapılabilirdi
+--in(deger1,deger2,deger3...)
+--deger1 or deger2 or deger3 or....
+
+select* from Production.Product 
+where Size like '%L%' or Size='38'
+
+select * from HumanResources.Department
+
+--adında design bilgisi geçenlerden veya grup adında Development bilgisi
+--geçmeyenleri getiriniz
+select * from HumanResources.Department 
+where name like '%Design%' or GroupName not like '%Development%'
+
+
+--tarihsel fonksiyonlar
+select getdate()
+
+--güncel tarih içerisinden sadece yıl bilgisini almak istersem
+--datepart() : tarihi parça parça elde etmek
+--datepart(yıl/ay/gun,gunceltarihverisi)
+select DATEPART(year,getdate())
+
+select DATEPART(month,getdate())
+
+--eğer 11 olarak değil de ay bilgisi olarak metinsel değere ulaşmak istersek
+--datename
+select datename(month,getdate()) --11.ayın metinsel olarak karşılıgını verir.
+
+
+select * from Production.Product
+
+--sellstartdate kolonundaki verilerin yıl bilgisini alalım.
+select DATEPART(year,SellStartDate) from Production.Product
+
+--sell startdate bilgisinin aylarını ekranda metinsel ay bilgisi olacak sekilde
+--gösterelim. 2008.04.30 buradaki 04 bilgisinin metinsel olarak nisan/april 
+--olacak sekilde getirecek sorguyu yazınız
+
+select SellStartDate,DATENAME(Month,sellstartDate) from Production.Product
+
+select * from HumanResources.Employee
+
+--çalışanların yaşları ve gender (cinsiyet) bilgilerini getirip gösterecek 
+--kodu yazınız.
+
+--getdate()...year-birthdate() yılı al. bu 2 datayı birbirinden çıkartarak bul
+--1.getdate() ve datepart kullanarak guncel yıl bilgisini al 2025
+--2.humanresources.departmenttablosundan dogum yılı bilgisini al.
+--3.bu 2 veriyi çıkartıp yaşı hesapla.
+
+select BirthDate, gender,DATEPART(YEAR, getdate()) - DATEPART(YEAR, BirthDate) yas 
+from HumanResources.Employee
+order by yas desc
+
+--02 martta dogmuş olanları yıla bakmadan getiriniz.
+select * from HumanResources.Employee 
+where DATEPART(month,Birthdate)=03 and   DATEPART(DAY,Birthdate)=02
+
+--kasım ayı içerisinde dogmus olan kişilerin
+--businessentityId, jobtitle, kasım ayında dogmuş olanlar,gender bilgilerini getirelim.
+--job title içerisinde engineer verisi geçenler sonuç kümesinde gözüksün
+--1.birthdate kolonundan ay bilgisi 11 olanları cıkart
+--2.jobtitle bilgisinde like ile '%engineer%'
+--3.select ile from arasına bu bilgileri ekleyelim. businessentityId, jobtitle, 
+--kasım ayında dogmuş olanlar,gender
+
+select BusinessEntityID,JobTitle,Gender,BirthDate from HumanResources.Employee 
+where DATEPART(month,BirthDate)=11 and JobTitle like '%engineer%'
+
+select * from HumanResources.EmployeeDepartmentHistory
+--enddate bilgisi boş olanların startdate kolonlarına bakarak kaç yıldır o departmanda çalıştıklarını
+--getirip gösteriniz
+
+
+select BusinessEntityID,datepart(year,getdate())-DATEPART(year,StartDate) kaçYıl from HumanResources.EmployeeDepartmentHistory 
+where EndDate is null 
+order by kaçYıl desc
+
+--yukarıdaki sorguda 14,15,16,17 yıldır bizimle çalışanları getiriniz. 
+select BusinessEntityID,datepart(year,getdate())-DATEPART(year,StartDate) kaçyıl from HumanResources.EmployeeDepartmentHistory 
+where EndDate is null and datepart(year,getdate())-DATEPART(year,StartDate)   between 14 and 17
+order by kaçYıl desc
+
+--datediff
+--dogdugum yıldan bugüne kaç gün geçmiş
+select DATEDIFF(day,'2024.01.01',getdate())--678 gün
+
+--cumhuriyetin 29 ekimde kaçıncı yılı kutlandı.
+select DATEDIFF(year,'1923.10.29',getdate())
+
+--urunler için sellstartdate kolonuna bakarak kaçyıldır satılıyor bilgisini gösterelim.
+
+select DATEDIFF(year,SellStartDate,getdate()) from Production.Product
