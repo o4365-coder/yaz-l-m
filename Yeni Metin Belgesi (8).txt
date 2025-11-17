@@ -1,0 +1,187 @@
+--Ogrenci(id,ad,soyad,ogrencino,yasadigisehir)
+--Sehir(id,ad,bolge)
+
+use AdventureWorks2022
+
+select * from Ogrenci
+
+select * from sehirler where id=6
+
+--id : 6, ankaralı yasemin yazıcı ogrencino 777 dogum tarihi 1975.02.02 ,
+--adanalı ferhat 
+--mersinli deniz 
+--bubilgileri ogrenci tablosuna ekleyelim.
+
+--insert into ogrenci values ()
+
+insert into Ogrenci values (6,'yasemin','yazıcı','777','19750202',6),
+(7,'ferhat','yazıcı','888','19770303',1),
+(8,'deniz','yazıcı','999','19790404',33)
+
+select * from Ogrenci -- 8 kayıt gelecek.
+
+
+
+--ankarada yaşayan kişiler
+select* from Ogrenci where yasadigisehirid=(select id from sehirler where sehir='ankara')
+
+--yaşı 30 üzerinde olanlar.
+--1.dogum tarihinden yıl bilgisiini datepart ile.
+--2.guncelyıl-dogumyili bilgisini çıkart
+
+select dogumtarihi, DATEPART(year,GETDATE())- Datepart(year,dogumtarihi)  as yas
+from Ogrenci where DATEPART(year,GETDATE())- Datepart(year,dogumtarihi)>=30
+order by DATEPART(year,GETDATE())- Datepart(year,dogumtarihi) desc
+
+--yaşadıgı şehir bilgisi akdeniz bölgesinde olanları getiriniz.
+--not eğer alt sorguda parantez içerisindeki sorguda birden fazla id değeri 
+--gelecekse in(alt sorgu), tek bir kayıt gelecekse =(alt sorgu)
+--select* from Ogrenci where yasadigisehirid=(select id from sehirler where sehir='ankara')
+select * from sehirler
+--1.bolge bilgisi Akdeniz Bölgesi olanların id bilgilerini çek
+
+--2.1den gelen id bilgilerini in() ile ana sorguya bagla.
+select * from Ogrenci where yasadigisehirid 
+in(select id from sehirler where bolge='Akdeniz Bölgesi')
+
+
+--group by 
+--gruplandırma yapmak için kullanılır.
+select yasadigisehirid  from Ogrenci group by yasadigisehirid
+
+--urunleri renklerine göre gruplandıralım
+select Color from Production.Product group by Color 
+
+--gruplandırma kodu ile ürünler tablosundaki ürünleri renklerine göre gruplandırdık.
+--hepsi 1er tane gözükecek sekilde getirdik.
+select Color,count(*) from Production.Product
+group by Color
+
+--tek tek bütün renkler için gruplandırma yapar. her grubun count(*) ile kayıt 
+--adedini sayar ve getirir.
+
+select * from Sales.SalesOrderDetail
+--urunid bilgisine gruplandırma yapalım ve her grupta kaçar tane kayıt var ise 
+--bu bilgileri getirip ekranda kayıt adedi olacak sekilde gösterelim.
+
+select ProductID,COUNT(*) from Sales.SalesOrderDetail
+group by ProductID
+order by count(*) desc
+
+--ürünlere göre gruplandırma yaparken productid bilgisi içerisinde 
+--7 geçenleri gruplandıralım. hangi ürün grubundan kaç tane var ise gösterelim.
+select ProductID,COUNT(*) from Sales.SalesOrderDetail
+where ProductID like '%7%'
+group by ProductID
+order by count(*) desc
+
+--gruplandırma yaptıktan sonra elde ettiğimiz kayıt adet bilgisi 
+--2121den 3382ye kadar olan kayıtları getiriniz.
+--group by kolonadi
+--having count(*)>=2121 and count(*)<=3382
+
+select ProductID,COUNT(*) from Sales.SalesOrderDetail
+where ProductID like '%7%'
+group by ProductID
+having count(*)>=2121 and  count(*)<=3382
+order by count(*) desc
+
+--not
+--eğer koşul varsa ve bu koşul gruplandırma ile alakası olmayan bir koşul ise
+--where kullanırız.
+
+--koşul var gruplandırma sonrası kayıt adedini kontroletmek istersek
+--group by kolonadi
+--having koşul
+
+--where kosul
+--group by kolonadi
+--having kosul 
+
+--urunleri fiyatlarına göre gruplandırıp listprice, urunadedi 
+select ListPrice,count(*) from Production.Product 
+group by ListPrice
+order by count(*) desc
+
+--fiyat bilgisi 4 içeren kayıtları fiyatlarına göre gruplandırıp 
+--hangi fiyattan kaç tane var bulalım?
+select ListPrice,count(*) from Production.Product 
+where ListPrice like '%4%'
+group by ListPrice
+order by count(*) desc
+
+--fiyat bilgisi 4 içeren kayıtları fiyatlarına göre gruplandırıp 
+--kayıt adedi 10 ve üzerinde olanları hangi fiyattan kaç tane var ise göster
+select ListPrice,count(*) from Production.Product 
+where ListPrice like '%4%'
+group by ListPrice
+having count(*)>=10
+order by count(*) desc
+
+select * from HumanResources.Employee
+
+--jobtitle'a göre gruplandırma yapalım
+--gender bilgisi M olanlar ve evlilik durumu Single olanlar sonuç kümesine dahil 
+--edilmeli. 
+--Jobtitle, adet 
+
+select JobTitle,count(*)
+from HumanResources.Employee
+where Gender='M' and MaritalStatus='S'
+group by JobTitle
+
+--çalışanları HumanResources.Employee tablosundaki kayıtları dogum yılına göre
+--gruplandırıp hangi yıldan kaç tane kayıt varsa bu bilgileri getirelim.
+--Birthdate bilgisine bak yıl bilgisini al. gruplandırma işlemini o kolona göre yap.
+
+select  DATEPART(year,Birthdate),count(*) adet
+from HumanResources.Employee
+group by DATEPART(year,Birthdate)
+order by adet desc
+
+--çalışanların hiredate bilgisine bakarak, yıl datasına göre gruplandıralım.
+--hangi yıl kaç kişi ile anlaşmışız bilgisini group by ve count ile hesaplayalım.
+select DATEPART(year,HireDate), count(*)
+from HumanResources.Employee
+group by Datepart(year,HireDate)
+
+--job title bilgisinde manager geçenleri dogum yıllarına göre gruplandıralım
+--group by kolon1,kolon2
+select  Datepart(year,BirthDate),JobTitle, count(*)
+from HumanResources.Employee
+where JobTitle like '%manager%'
+group by Datepart(year,BirthDate),JobTitle
+
+--en genç yönetici?
+
+select  max(Datepart(year,BirthDate)),JobTitle
+from HumanResources.Employee
+where JobTitle like '%manager%'
+group by Datepart(year,BirthDate),JobTitle
+
+--Accounts Manager title'ına sahip olan 1983 lü olan managerı bulalım. adı -soyadı ne
+select * from HumanResources.Employee 
+where JobTitle ='Accounts Manager'and DATEPART(year,BirthDAte)=1983
+
+--30845 nationalId numberbilgisine sahip olan en genç yöneticidir.
+
+select * from Production.Product
+--productSubcategoryid bilgisini tutuyor.
+
+select * from Production.ProductSubcategory
+
+--urun alt kategori adında bikes geçen kategorileri sahip olan ürünleri 
+--kategori bilgisine göre gruplandırıp 
+--hangi grupta kaç tane varsa getiriniz.
+select ProductSubcategoryID,count(*)
+from Production.PRoduct where ProductSubcategoryID in
+(select ProductSubcategoryID from Production.ProductSubcategory
+where name like '%bikes%')
+group by ProductSubcategoryID
+
+--1,2,3 yerine gerçek adlarını göstersek.
+--join :bağlamak anlamına gelir. 
+--veri tekrarını azaltmak için parçaladığımız tabloları join ile birbirine bağlarız
+--select from tablo1 join tablo2 on tablo1.ortakkolon=tablo2.ortakkolon
+select Product.Name,ProductSubcategory.Name from Production.Product join Production.ProductSubcategory
+on Production.Product.ProductSubcategoryID=Production.ProductSubcategory.ProductSubcategoryID

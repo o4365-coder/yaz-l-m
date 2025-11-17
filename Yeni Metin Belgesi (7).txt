@@ -1,0 +1,130 @@
+--ogrenci bilgilerini tutacak sekilde yeni bir tablo oluşturalım.
+--Ogrenci(id,ad,soyad,ogrencino,dogumtarihi(yıl-ay-gun))
+create table Ogrenci
+(
+id int, --id otomatik artmıyor.
+ad nvarchar(50),
+soyad nvarchar(50),
+ogrencino nvarchar(50),
+dogumtarihi nvarchar(50) --dogum tarihi alanı datetime tanımlanmamış.
+)
+
+--ogrenci tablosuna kodla insert kullanarak 2 tane kayıt ekleyelim.
+
+--ogrenci tablosuna adı cemil, soyadı karaca olan ogrencino 111 olan 
+--dogumtarihi 01.01.2000 olan bir öğrenciyi ve adı alperen soyadı kibar olan 
+--dogum tarihi 01.01.1997 olan bir öğrenciyi ekleyelim.
+--insert into tabloAdi values(deger1,deger2,deger3..)
+
+insert into Ogrenci values (1,'Cemil','Karaca','111','20000101'),
+(2,'Alperen','Kibar','333','19970101')
+
+select * from Ogrenci
+
+--ogrenci tablosundaki kişilerin yaşlarını,ad,soyad bilgilerini getirip gösterelim.
+select datepart(year,getdate())--2025
+--datepart(): mevcut bir tarihin birbölümünü almak istersek, year,ay,gun,dk,saat,
+--milisaniye türünden alabiliriz.
+--datepart(tur,kolonAdi) : kolondan bizim istediğimiz tarihsel veriyi alır getirir
+
+
+select dogumtarihi,DATEPART(year,getdate())- DATEPART(year,dogumtarihi) 
+from Ogrenci
+
+--herkesin dogumtarihine 3 ay ekleyebilir miyiz?
+--dateadd(month,3,gunceltarih)
+
+select dogumtarihi,DATEADD(month,3,dogumtarihi) from Ogrenci
+
+--insert ile dogum tarihi bilgisi 01012000 olacak sekilde bir kayıt girelim.
+
+insert into Ogrenci values(3,'Ahmet','Osman','444','01012000')--gun.ay.yıl formatı
+
+select * from Ogrenci
+--stringsel tanımlanmış olan tarih verileri yılaygun formatında girilmişse düzgün 
+--çalışır.
+--öğrenciid bilgisi 3 olan kaydın dogum tarihi üzerine 6 ay ekleyip yeni tarihi 
+--bulup gösterelim.
+--01012000
+--12345678
+select SUBSTRING(dogumtarihi,5,4)+'.'+SUBSTRING(dogumtarihi,3,2)+'.'+
+SUBSTRING(dogumtarihi,1,2)
+from Ogrenci where id=3
+
+update Ogrenci
+set dogumtarihi= SUBSTRING(dogumtarihi,5,4)+'.'+SUBSTRING(dogumtarihi,3,2)
++'.'+SUBSTRING(dogumtarihi,1,2)
+where id = 3
+
+
+--select SUBSTRING(kolonadi,nereden başlayayım,kaç tane)
+
+--1.soru
+--ogrencilerin mezun olma tarihi hesaplanmalı.
+--dogumtarihi üzerine 18 yıl ekleyip mezuniyet tarihini bulalım.
+select dogumtarihi,dateadd(year,18,dogumtarihi) MezuniyetTarihi
+from Ogrenci
+
+
+--2.soru
+--suandan mezuniyet tarihine kaç ay var bunu herkes için tek tek hesaplayalım.
+select dogumtarihi,dateadd(year,18,dogumtarihi) MezuniyetTarihi,
+DATEDIFF(month,dateadd(year,18,dogumtarihi),getdate())
+from Ogrenci
+
+--select dateAdd(month,94,'2018.01.01')
+
+
+--dogum tarih bilgisinde 2 ile başlayan kayıtları bulalım.
+select * from Ogrenci where dogumtarihi like '2%'
+
+--Ogrenci tablosuna yeni bir kolon ekleyelim.
+alter TABLE Ogrenci add yasadigisehir nvarchar(50)
+
+--ogrencilerin yaşadığı şehir bilgisini tutsun.
+
+--bütün öğrenciler için istanbul verisini girelim.
+--update ile tablodaki bütün kayıtlar için yasadigisehir bilgisi İstanbul olacak 
+--şekilde güncelleyelim.
+
+select * from Ogrenci
+
+update Ogrenci set yasadigisehir='istanbul'
+
+--veri tekrarı oldu. Yasadigisehir bilgisi bilmem kaç tane kayıt için İstanbul verisi
+--tekrar edecek.
+--veri tekrarını azaltalım. 
+--istanbul.....istanbulid
+
+--rdbms : relational database management system : ilişkisel veri tabanı sistemi
+--tabloları veri tekrarını minimize edecek sekilde oluştur
+
+
+--sehir bilgisini tekrar etmek yerine
+--sehir(id,ad,plakakod)
+--sehir tablosuna sehirleri ekleyelim.
+--1.https://www.kaggle.com/datasets/sanlian/turkiye-sehirler-bolgeler?resource=download 
+--bu adresten exceli indirdik.
+--2.elimizdeki exceli sql management studiodan açılan Adventureworks2022 içine 
+--yükleyelim
+
+select * from Sehirler--+
+--ogrenci tablosundaki Yasadigisehir kolonunu sil.
+alter table ogrenci drop column yasadigisehir
+select * from Ogrenci
+
+--ogrenci tablosuna sehirid bilgisini ekle.
+alter table ogrenci add yasadigisehirid int
+
+--ogrenci tablosundaki yasadigisehirid bilgisini istanbula karşılık gelen id değeri 
+--olan 34 bilgisi olacak sekilde güncelleyelim.
+update Ogrenci set yasadigisehirid=34
+
+insert into Ogrenci values(4,'Sena','Özaltın','555','2002.03.03',35),
+(5,'mücahit idris','sancak','666','1985.04.04',06)
+
+
+--izmirde yaşayan öğrencilerin adını ve ogrenci numarasını getiriniz.
+
+select ad,ogrencino from Ogrenci 
+where yasadigisehirid=(select id from sehirler where sehir=N'İzmir')
