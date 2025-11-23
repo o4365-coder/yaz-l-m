@@ -1,0 +1,194 @@
+--23.11.2025
+--urun adlarını ve alt kategori adlarını getirelim.
+
+--Production.Product
+--Production.ProductSubCategory
+
+select Name,ProductSubcategoryID from Production.Product --(Name)
+select ProductSubcategoryID,Name from Production.ProductSubcategory--(Name)
+
+--2 tablo var, 2 kolondan veri getirilecek.
+--join kullanmak gerekiyor
+--ortak kolon ?
+--productSubCategoryId
+--join şablonu
+--select * from tablo1 join tablo2 
+--on tablo1.ortakkolon=tablo2.ortakkolon
+
+select Product.Name,ProductSubcategory.Name from Production.Product join
+Production.ProductSubcategory
+on Production.Product.ProductSubcategoryID=Production.ProductSubcategory.ProductSubcategoryID
+
+--2 join yazıp 2 tabloyu baglamak gerekirse.
+
+--urun adı ve urun kategori adını getirip gösteren kodu yazınız
+--Production.Product
+--Production.ProductSubcategory
+--Production.ProductCategory
+
+select Product.Name,ProductCategory.Name from Production.Product join Production.ProductSubcategory
+on Product.ProductSubcategoryID=ProductSubcategory.ProductSubcategoryID
+join Production.ProductCategory on ProductCategory.ProductCategoryID=ProductSubcategory.ProductCategoryID
+
+
+
+--Ogrenci 
+--Ders
+--1 öğrenci 1den fazla ders alır mı? evet
+--1 ders 1den fazla öğrenciye verilir mi? evet
+--coka cok
+--Ogrenci    (id,ad,soyad,ogrno)
+--Ders       (id,ad,kredi)
+--Ogrenciders(id,ogrenciid,dersid)
+
+--tabloların hepsine 3er kayıt ekleyelim.
+--hangi öğrenci hangi dersi almış bilgisini ekranda join kullanarak gösterelim.
+
+create table OgrenciY
+(
+id int primary key identity,
+ad nvarchar(30),
+soyad nvarchar(30),
+ogrno nvarchar(11)
+)
+
+create table DersY
+(
+id int primary key identity,
+ad nvarchar(30),
+kredi int
+)
+
+
+create table OgrenciDersY
+(
+id int primary key identity,
+ogrenciid int,
+dersid int
+)
+
+
+--DersY tablosuna 3 kayıt girelim.
+insert into DersY values ('SQL',2),('C#',3),('EntityFramework',2)
+
+select * from DersY
+
+--Ogrenciler eklenecek.
+select * from OgrenciY
+insert into OgrenciY values ('Alperen','Kibar','333'),('Sena','Özaltın','444'),('Ahmet','Osman','555')
+
+
+--Ogrencilere ders atamasını yapmak için OgrenciDers
+--Alperen'e SQL, Sena'ya C# , Ahmete EntityFramework
+select * from OgrenciDersY
+--ogrenciid(1,1),(2,2),(3,3)
+
+insert into OgrenciDersY values (1,1),(2,2),(3,3)
+--Ogrenci tablosuna yeni bir öğrenci ekleyelim. (Oğuzhan Taşçı 666) 
+insert into OgrenciY values ('Oğuzhan','Taşçı','666')
+
+--OgrenciAd, DersAd (ders almayan öğrencilerin bilgileri de getirilmeli.)
+select OgrenciY.ad,DersY.ad 
+from OgrenciY left join OgrenciDersY on OgrenciY.id=OgrenciDersY.ogrenciid  left join DersY on OgrenciDersY.dersid=DersY.id
+
+--view
+--sanal tablolar
+--üzerinde veri taşımaz
+--gelen datayı anlık gösterir. güncel veriyi gösterir.
+
+--tabloya atılan tüm select sorguları viewde de yapılabilir.
+
+--create view v_viewAdi
+--as
+--sql cümlesi
+
+--view yapıları nerede tutulur
+--Database çift tıkla->Views altında viewlar tutulur.
+
+--yukarıdaki sql sorgusunu view olarak oluşturduk
+create view v_ogrenciDersAdBilgileri
+as
+select OgrenciY.ad 'OgrenciAd',DersY.ad 'DersAd' 
+from OgrenciY left join OgrenciDersY on OgrenciY.id=OgrenciDersY.ogrenciid  left join DersY on OgrenciDersY.dersid=DersY.id
+
+select * from v_ogrenciDersAdBilgileri --sanal tablodan yani viewdan veri çektik.
+
+
+--1.OgrenciAd ve DersAd bilgilerini Ders adında e harfi geçmeyenleri getirecek sekilde view olarak kaydediniz.
+create view v_DersAdindaEGecmeyenler
+as
+select * from v_ogrenciDersAdBilgileri where DersAd not like '%e%' or DersAd is null
+
+--2.oluşturdugunuz view yapısını kullanınız.
+select * from v_DersAdindaEGecmeyenler
+
+--Adventureworks databasei altındaki production.product tablosundan 
+--urunlerin hangi renkten kaçar adet olduklarını gösterecek kodu view olarak oluşturalım ve bu view yapısını çağırıp kullanalım.
+select distinct Color from Production.Product
+
+--group by ile birlikte count(*) yapısını kullanarak kaçar adet olduklarının bilgisini getirip gösterelim.
+create view v_UrunRenkAdet
+as
+select color,count(*) 'Adet' from Production.Product
+group by Color
+
+select * from v_UrunRenkAdet
+order by Adet 
+
+
+--bir view şifreli olsun ve sonradan açılamasın istersek şifreli oluşturulur.
+
+--view'A sag tıkla-> Script View As->Create To view sorgusunu açabiliriz.
+
+--açılmasın yani şifreli olsun istersem 
+--create view v_viewAdi with encryption 
+--as
+--sorgu
+
+create view v_Sifreli with Encryption
+as
+select color,count(*) 'Adet' from Production.Product
+group by Color
+
+select * from HumanResources.Employee
+select * from Person.Person
+
+--yukarıdakı 2 tabloyu kullanarak
+--kişilerin adlarını,birthdate bilgilerini getirecek view yapısını
+--şifreli olacak şekilde tanımlayınız.
+create view v_PersonelBilgileri with encryption
+as
+select Person.FirstName,Person.MiddleName,Person.LastName,Employee.BirthDate from HumanResources.Employee join Person.Person
+on Person.BusinessEntityID=Employee.BusinessEntityID
+
+select * from v_PersonelBilgileri
+
+--yukarıda hazırladıgımız view yapısını kullanarak
+--her bir kişinin adını,yaşını getirip gösterecek kodu yazınız.
+--getdate()'den yıl bilgisini al - dogum tarihi alanından yıl bilgisini al
+--ad,yas(getdate()'den yıl bilgisini al - dogum tarihi alanından yıl)
+
+select FirstName,datepart(year,getdate())-datepart(year,BirthDate) yas from v_PersonelBilgileri
+order by yas desc
+
+--bu kişilerinin yaşlarının ortalamasını bulalım...
+--avg,sum/count(*) 
+
+
+select avg(datepart(year,getdate())-datepart(year,BirthDate)) ort from v_PersonelBilgileri
+
+select sum(datepart(year,getdate())-datepart(year,BirthDate))/count(*) from v_PersonelBilgileri
+
+
+--yaşı ortalama yaştan büyük olanları getiriniz.
+SELECT DATEDIFF(YEAR, BirthDate, GETDATE())
+FROM v_PersonelBilgileri
+WHERE DATEDIFF(YEAR, BirthDate, GETDATE()) > 
+(
+    SELECT AVG(DATEDIFF(YEAR, BirthDate, GETDATE())) 
+    FROM v_PersonelBilgileri
+)
+
+--stored procedure
+--hızlı
+--cachlenir
