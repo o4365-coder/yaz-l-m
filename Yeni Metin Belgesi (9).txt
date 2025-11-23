@@ -1,0 +1,217 @@
+--sql kodları buraya yazılır
+--yorum satırı 
+
+--kadıköy istanbul
+--arnavutköy istanbul
+--....
+--üsküdar istanbul
+
+--tekrar eden verileri her seferinde uzun uzun yazmamak için yeni bir tabloya taşı
+
+--1.ayrı tablo oluştur
+--2.bu tabloda id alanı olacak
+--3.ana tabloda artık istanbul yazmak yerine istanbul datasına karşılık gelen id bilgisini yaz.
+
+create database AdresVeritabani
+
+--schema : 
+--güvenlik amacıyla kullanılır
+
+--En tepede db(database)
+--Schema
+--Table
+
+use AdventureWorks2022
+
+select * from Production.Product
+--			   schemaAdi.TabloAdi
+
+--not 
+--eğer tablo oluştururken schemaAdi belirtilmemişse bu durumda otomatik default(varsayılan) dbo olacaktır.
+
+--schemalar güvenlik amacıyla kullanılır.
+--Schema'ya yetki verdiğin zmn altındaki tüm tabloları yetkilendirmiş olursun, eğer bir schemadan yetkiyi almışsak onun altındaki tüm tablolardan yetkiyi almış oluruz.
+
+use AdresVeritabani --adresveritabanini kullan.
+
+create schema Adres --Adres Scheması oluşturuldu
+--il(id,ad)
+--ilce(id,ad,ilid)
+
+create table Adres.Il --schemaAdi.TabloAdi
+(
+id int primary key identity,
+ad nvarchar(80)
+)
+
+--ilce(id,ad,ilid)
+--ilce tablosunu oluşturalım.
+
+create table Adres.Ilce
+(
+id int primary key identity,
+ad nvarchar(50),
+ilid int
+)
+
+--her 2 tabloya 3-4 kayıt giriniz.
+
+insert into Adres.Il values ('istanbul'),('ankara'),('izmir')
+
+select * from Adres.Il
+
+insert into Adres.Ilce values ('kadıköy',1),('bahçelievler',2),('karşıyaka',3),('arnavutköy',1),('bakırköy',1)
+
+select * from Adres.Ilce
+
+--ilAdi ve ilceadini getiren kodu yazınız.
+select * from Adres.Il
+select * from Adres.Ilce
+
+--göstermek istediğimiz 2kolon 2 farklı tabloda
+--join var.
+
+use AdventureWorks2022
+
+select * from Production.Product --ad ve fiyat bilgisi aynı tabloda o yüzden joinsiz bir sorgu hazırlanır.
+
+
+--eğer soruda join varsa bu durumda 
+--select * from tablo1 join tablo2 on tablo1 ve tablo2deki aynı veriyi taşıyan ortak kolon seçilir
+--ilAdi ve ilceadini getiren kodu yazınız.
+
+--tablo1: Adres.Il
+--tablo2: Adres.Ilce
+--her 2 tabloda da ortak olan kolon Il.id=Ilce.ilid
+use AdresVeritabani
+select Il.ad,Ilce.ad from Adres.Il join Adres.Ilce
+on Il.id=Ilce.ilid
+
+--ilce adında ö harfi geçmeyenler
+select Il.ad,Ilce.ad from Adres.Il join Adres.Ilce
+on Il.id=Ilce.ilid where Adres.Ilce.ad not like '%ö%'
+
+--Adres.Semt adında alttaki kolonları içeren tabloyu oluşturalım
+--Semt(id,ad,ilceid)
+--kadıköyden 2 mahalle, bköyden 2 mah., karşıyakadan 2 mah. girelim
+
+create table Adres.Semt
+(
+id int primary key identity,
+ad nvarchar(30),
+ilceid int
+)
+
+select * from Adres.Semt
+insert into Adres.Semt values ('suadiye',1),('fenerbahçe',1),('cevizlik',5),('kartaltepe',5),('bostanlı',3),('yalı',3)
+
+
+--Semt adi ve ilce adini birlikte getirip gösteriniz.
+--1.join var mı? istenen veriler tek tabloda ise join yok, 1den fazla tabloda ise join var.+
+--2.eğer join varsa tablolar ve tablolardaki ortak kolon
+--3.join yoksa düz sql sorgusu
+
+--select * from tablo1 join tablo2 on tablo1.ortakkolon=tablo2.ortakkolon
+select Semt.ad,Ilce.ad from Adres.Ilce join Adres.Semt 
+on Adres.Ilce.id=Adres.Semt.ilceid
+
+--semt adı ve il adını birlikte getiriniz.
+--semt ve il tablosundan veriler getirelecek.
+--2 tabloyu incelediğimizde ortak bir kolon yok.
+--a=b , b=c  ...... a=c evet
+--Il-Ilce....Ilce-Semt ....Il ve Semt birbirine bağlanmış olacak.
+--3 tablonun hepsi birbirine bağlanmalı.
+--3 tabloyu birbirine baglarken 2li 2li bagla
+--1.Il-ılce
+--2.ilce-semt
+
+--tablo1 join tablo2 on tablo1.ortkkolon=tablo2.ortakkolon join tablo3 on tablo2.ortakkolon=tablo3.ortakkolon
+
+select Il.ad,Semt.ad from Adres.Il join Adres.Ilce on Il.id=Ilce.ilid
+join Adres.Semt on Adres.Semt.ilceid=Adres.Ilce.id
+
+
+--join = inner join ile aynı
+--bütün tablolarda veri olmasını bekler.
+--eşleşen kayıtları getirir. eşleşmeyen kayıtları getirmez
+select Il.ad,Semt.ad from Adres.Il inner join Adres.Ilce on Il.id=Ilce.ilid
+join Adres.Semt on Adres.Semt.ilceid=Adres.Ilce.id
+
+select* from Adres.Semt
+
+--left join 
+--right join
+select Il.ad,Semt.ad from Adres.Il left join Adres.Ilce on Il.id=Ilce.ilid
+left join Adres.Semt on Adres.Semt.ilceid=Adres.Ilce.id
+
+
+--kötü eski senaryo
+--urun(id,ad,fiyat,kategoriad)
+--fare elektronik
+--klavye elektronik
+--telefon elektronik
+
+
+--urun kategori 
+--1 ürünün aynı anda 1den fazla kategorisi olur mu? hayır
+--1 kategoride 1den fazla ürün bulunur mu?  evet
+--1e çok ilişki türü
+
+--urun(id,ad,fiyat,kategoriid)
+--kategori(id,ad)
+
+--tabloları oluşturalım
+--3er kayıt ekle.
+--1 kategoriye hiç ürün baglamayalım
+--1 ürünü kategorisiz girelim.
+create table Kategori
+(
+id int primary key identity,
+ad nvarchar(30)
+)
+
+--,ad,fiyat,kategoriid
+create table Urun
+(
+id int primary key identity,
+ad nvarchar(30),
+fiyat money,
+kategoriid int
+)
+
+select * from Urun
+select * from Kategori
+
+insert into Kategori values ('elektronik'),('giyim'),('gıda')
+insert into Urun values ('laptop',40000,1),('cubuk kraker',20,3)
+
+insert into Urun (ad,fiyat) values ('battaniye',1000)
+
+--urunadı, kategoriadı bilgilerini getirecek joini yazınız
+select Urun.ad,Kategori.ad from Urun join Kategori on Urun.kategoriid=kategori.id
+
+-- ben eşleşen kayıtları değil eşleşmeyen kayıtları da görmek istersem
+--1.join=inner join
+--2.left join
+--3.right join
+--4.full outer join
+
+--urunler tablosundaki tüm kayıtlar getirilmeli
+select Urun.ad,Kategori.ad from Urun left join Kategori on Urun.kategoriid=kategori.id
+
+select Urun.ad,Kategori.ad from Kategori right join Urun on Urun.kategoriid=kategori.id
+
+--kategorilerin hepsi getirilsin urun tarafında karşılıgı olmayan kategorilerde gözüksün.
+select Urun.ad,Kategori.ad from Kategori left join Urun on Urun.kategoriid=kategori.id
+
+--bütün tablolarda eşleşmeyen tüm kayıtları getirir.
+select Urun.ad,Kategori.ad from Kategori full outer join Urun on Urun.kategoriid=kategori.id
+
+--ödev
+use AdventureWorks2022
+select * from Production.Product --productsubcategoryid alt kategori bilgisi idsi
+
+--urun adlarını ve alt kategori adlarını getirelim.(kategori tablosundaki bütün verileri getirdiğimize emin olalım)
+select * from Production.ProductSubcategory
+
+--view,stored procedure, function, trigger
