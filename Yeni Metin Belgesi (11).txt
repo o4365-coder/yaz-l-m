@@ -1,0 +1,171 @@
+--view
+--select sorguları yazılabilir.
+
+use AdventureWorks2022
+
+select * from HumanResources.Employee
+select * from Person.Person
+
+--bana bir view yapısı hazırlayın.
+--kişinin adını,soyadını,dogumyilini getirip gösterecek
+--view yapısını kodlayınız.
+
+--yukarıdaki 2 tabloda ortak olan kolonu bulalım.
+--BusinessEntityID
+create view v_Calisanlar
+as
+select Person.FirstName,Person.LastName,Datepart(year, Employee.BirthDate) 'DogumYılı' from HumanResources.Employee join Person.Person
+on Person.BusinessEntityID=Employee.BusinessEntityID
+
+
+select * from v_Calisanlar --güncel veriyi getirecektir.
+
+--Stored procedure
+--saklı yordam
+--periyodik yapılan işleri her seferinde tekrar tekrar join hazırlamamak için, hızlı çalıştıgı için kullanılır.
+
+--create database
+--create table
+--create view 
+--create schema
+--create procedure /proc sp_spAdi()
+--as
+--sorgu
+go
+
+--stored procedure oluşturma kodları
+create proc sp_Kirmizililar
+as
+select * from Production.Product where Color='red'
+
+--alttaki dosya yolunu oluşturulur.
+--Programmability->Stored Procedures->
+
+
+--bir stored procedure nasıl kullanılır.
+exec sp_Kirmizililar
+
+select Color from Production.Product
+
+--renklerin hepsini 1er kez göstersin istersek 
+select distinct Color from Production.Product
+
+--renk bilgilerini kullanarak tek tek sp olarak hazırlamak istersek bu durumda sıkıntı yaşarız.
+
+declare @sayi int  --int türünden sayi adında değişken tanımladık.
+set @sayi=3   -- sayi değişkenine 3 değerini atadım
+print @sayi
+
+--renk bilgisini tutacak bir değişken tanımlayınız. 
+--color(nvarchar(15)) türünden bir değişken tanımladık.
+--değişken değerini mor yapın
+--en sonda ekrana değişkeni yazdıralım
+
+declare  @color nvarchar(15)
+set @color='purple'
+print @color
+
+go
+
+create proc sp_rengeGoreGetir(@renk nvarchar(15))
+as
+select * from Production.Product where Color=@renk
+
+
+exec sp_rengeGoreGetir 'red'
+exec sp_rengeGoreGetir 'black'
+exec sp_rengeGoreGetir 'silver'
+
+
+--kullanıcıdan stok bilgisini alan,
+--o stok bilgisine sahip olan ürünleri getiren stored procedure'ü yazalım.
+
+select distinct SafetyStockLevel from Production.Product
+
+--stok bilgisini parametrik yapalım
+go
+
+create procedure sp_StokBilgisineGoreGetir(@stok smallint)
+as
+select * from Production.Product where SafetyStockLevel=@stok
+
+
+--exec ile sp_StokBilgisineGoreGetir kullanılacak
+exec sp_StokBilgisineGoreGetir 1000 --156
+
+exec sp_StokBilgisineGoreGetir 500 --167
+
+exec sp_StokBilgisineGoreGetir 4
+
+--urunlerin min ve maks fiyatlarını girelim, bu aralıkttaki ürünleri getirecek kodu yazalım.
+
+--create proc sp_AraliktakileriGetir (@min money,@maks money)
+
+
+--1.spyi hazırla
+--2.1deki sp'yi 9.50 ile 34.99 arasındaki ürünleri getirecek sekilde dene.
+
+
+
+--
+go
+create proc sp_AraliktakileriGetir(@min money,@maks money)
+as
+select * from Production.Product where ListPrice between @min and @maks
+
+exec sp_AraliktakileriGetir 9.50,34.99
+
+--parametre olarak kişinin dogdugu yıl bilgisini alan ve o yılda doğmuş olan kişilerin adlarını,yaslarını getiren spyi hazırlayınız.
+
+create proc sp_DogumYiliBilgis (@Yil int)
+as
+select FirstName, LastName, datediff(year, BirthDate, getdate()) Yas
+from Person.Person join HumanResources.Employee
+on Person.BusinessEntityID = Employee.BusinessEntityID
+where year(Employee.BirthDate) = @Yil;
+
+exec sp_DogumYiliBilgis 1986
+
+
+create proc sp_DogumYilinaGoreGetir(@dogumyili int)
+as
+select Person.FirstName,DATEPART(year,getdate())-@dogumyili from HumanResources.Employee join Person.Person
+on Employee.BusinessEntityID=Person.BusinessEntityID
+where DATEPART(year, Employee.BirthDate)=@dogumyili
+
+exec sp_DogumYilinaGoreGetir 1952
+
+--renk ve stok bilgisini kullanıcıdan alalım,
+--parametre olarak gönderilen ürünleri getirecek sp'yi hazırlayalım.
+create proc sp_RenkVeStokGetir(@renk nvarchar(15),@stok smallint)
+as
+select * from Production.Product where Color=@renk and SafetyStockLevel=@stok
+
+exec sp_RenkVeStokGetir 'yellow',100
+exec sp_RenkVeStokGetir 'red',500
+
+
+--urun adında arama yapan bizim girdiğimiz harfleri içeren sql sp'yi hazırlayınız.
+create proc sp_UrunAra(@harf nvarchar(50))
+as
+select * from Production.Product where Name like '%'+@harf+'%'
+
+exec sp_UrunAra 'hex'
+
+exec sp_UrunAra 3
+exec sp_UrunAra 'Touring-3000 Blue, 58'
+
+--urun kategori adını alan ,o kategorideki alt kategorileri getiren sp'yi hazırlayınız.
+create proc sp_KategoridenAltKategoriGetir(@kategori nvarchar(50))
+as
+select ProductSubcategory.Name from Production.ProductCategory join Production.ProductSubcategory
+on ProductCategory.ProductCategoryID=ProductSubcategory.ProductCategoryID
+where ProductCategory.Name=@kategori
+
+
+exec sp_KategoridenAltKategoriGetir 'Accessories'
+
+--sp: select yazılır.
+--ödev
+--sp ile güncelleme yapılır mı?
+--function, trigger
