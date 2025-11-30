@@ -1,0 +1,212 @@
+--sp
+--stored procedure
+--saklı yordam
+---karışık join sorguları daha hızlı çalışsın istersek sp yapabiliriz.
+--cachelendiği için daha hızlı çalışır.
+
+--sp: select sorguları yazdık.
+--sp içerisinde insert, update,delete gibi işlemleri yapabilir miyiz?
+
+use AdventureWorks2022
+
+select * from Production.Product
+
+--urunlerin renklerini bütün ürünler için renk yok olacak sekilde güncelleyen kodu yazalım.
+
+--sp 
+--update sorgusu yazalım. 
+
+--1.update kodunu yazalım
+--2.bu update kodunu sp içerisine yazıp onu çalıştıralım.
+
+go
+create proc sp_UrunRenkleriniSil 
+as
+update Production.Product set Color=null
+
+select * from Production.Product
+
+exec sp_UrunRenkleriniSil
+
+select * from HumanResources.Department
+
+--DepartmentId  : otomatik id alan kolon
+--Name			: Yazılım
+--GroupName		: Android 
+--ModifiedDate  : 28.11.2022 olacak sekilde yeni bir kayıt eklememiz gerekiyor.
+
+--bu kaydı sp kullanarak ekleyelim.
+
+--1.sp'yi hazırla (insert into ....)
+--2.1 numaralı basamakta hazırladıgın sp'yi kullanarak yukarıdaki datayı ilgili tabloya ekleyelim.
+go
+
+create proc sp_DepartmanEkle(@ad nvarchar(50),@grupadi nvarchar(50),@tarih datetime)
+as
+insert into HumanResources.Department values (@ad,@grupadi,@tarih)
+
+exec sp_DepartmanEkle 'Yazılım','Android','2022.11.28'
+
+select * from HumanResources.Department --kayıt eklendi mi kontrol yaptık.
+
+
+--1.sp hazırlayın. Alt Kategori tablosuna ve Kategori tablosuna sırayla 2 yeni kayıt ekleyecek.
+select * from Production.ProductCategory 
+select * from Production.ProductSubcategory 
+
+--kategori tablosuna Gıda kategorisini ekleyen, o gıda kategorisine çubuk kraker, rowid bilgisini  select NEWID() --yeni bir guid değeri üretir. komutu ile atayalım.modifieddate bilgisi 2022.11.28 olsun.
+
+--2.1deki sp'yi kullanarak yukarıdaki Gıda ekle sonra cubuk kraker verisini ekleyelim.
+select * from Production.ProductCategory
+go
+create proc sp_KategoriEkle(@ad nvarchar(50),@tarih datetime)
+as
+insert into Production.ProductCategory values (@ad,NEWID(),@tarih)
+
+exec sp_KategoriEkle 'Gıda','2022.11.28'
+
+select * from Production.ProductCategory
+
+--alt kategori ekleyen versiyonu oluşturalım.
+--create proc sp_AltKategoriEkle (urunad,kategoriad)
+--bizim eklemek istediğimiz cubuk krakeri bizim belirlediğimiz gıda kategorisine ekleyen kodu yazalım.
+
+select * from Production.ProductSubcategory
+--altkategoriid(gıda tablosuna git id bilgisini al ve ekle,
+--name : Temel Gıda
+--rowguid newid()
+--modifieddate : @tarih kullanıcı bu bilgiyi girer.
+go
+create proc sp_AltKategoriEkle (@kategoriad nvarchar(50),@altkategoriad nvarchar(50),@tarih datetime)
+as
+declare @kategoriid int
+select @kategoriid=ProductCategoryID from Production.ProductCategory where Name=@kategoriad
+insert into Production.ProductSubcategory values(@kategoriid,@altkategoriad,newid(),@tarih)
+
+exec sp_AltKategoriEkle 'Gıda','Temel Gıda','2022.11.28'
+
+
+--silme işlemi
+go
+create proc sp_KategoriSil(@kategoriad nvarchar(50))
+as
+delete from Production.ProductSubcategory where Name=@kategoriad
+
+exec sp_KategoriSil 'Temel Gıda'
+
+select * from Production.ProductSubcategory
+
+select * from Production.ProductCategory
+
+--tabloyu sıfırlamak için truncate etmek gerekir.
+
+--function 
+--fonksiyon demektir.
+--datepart
+--dateadd
+select getdate()
+
+select datepart(year,getdate())
+
+select dateAdd(month,1,getdate())
+
+--tablodaki kayıt adedini bulan fonksiyon
+select count(*) from Production.Product --kayıt adedini verir.
+
+--KayitAdetAl()
+--create function fn_KayitAdetAl()
+--returns işsonucundaki data
+--as
+--begin
+--sql sorgu
+--end
+go
+create function fn_KayitAdetAl()--schemaAd.fonksiyonAdi (varsayılan dbo)
+returns int
+as
+begin
+return (select count(*) from Production.Product)
+end
+
+select dbo.fn_KayitAdetAl()
+
+
+--parametre almasın () 
+--çağırıldıgında kırmızı renkli ürün adet bilgisini bize döndüren fonksiyonu yazınız.
+go
+
+create function fn_KirmiziRenkAdet()
+returns int
+as
+begin
+return (select count(*) from Production.Product where Color='red')
+end
+
+select dbo.fn_KirmiziRenkAdet()
+
+--renk bilgisini parametre olarak kullanıcı girsin.
+--girilen renkteki ürünlerin adedini getirecek fonksiyonu yazalım
+
+create function fn_RengeGoreUrunAdet(@renk nvarchar(15))
+returns int
+as
+begin --{
+return (select count(*) from Production.Product where color=@renk)
+end   --}
+
+select dbo.fn_RengeGoreUrunAdet('red')
+
+select dbo.fn_RengeGoreUrunAdet('yellow')
+
+select dbo.fn_RengeGoreUrunAdet('black')
+
+--parametre olarak renk ve stok bilgisi alan,
+--o renkteki o stok bilgisine sahip olan ürünlerin adedini getiren fonksiyonu.
+create function fn_RenkVeStogaGoreGetir(@renk nvarchar(15),@stok int)
+returns int
+as
+begin
+return (select count(*) from Production.Product where Color=@renk and SafetyStockLevel=@stok)
+end
+
+select dbo.fn_RenkVeStogaGoreGetir('yellow',100)
+select dbo.fn_RenkVeStogaGoreGetir('red',500)
+
+select * from Production.Product where Color='red'
+--kayıtların hepsini getiren örnek?
+go
+
+create function fn_RenkVeStogaGoreUrunleriGetir(@renk nvarchar(15),@stok int)
+returns table
+as
+return (select * from Production.Product where Color=@renk and SafetyStockLevel=@stok)
+
+select * from dbo.fn_RenkVeStogaGoreUrunleriGetir('red',500)
+select * from HumanResources.Department
+
+--trigger
+--tetikleyici
+--bir tabloyu dinler.
+--o tablo üzerinde after insert, instead of delete, after select, vs.
+
+--birisi humanresources.department tablosundan silme işlemi yaparsa,
+--silme yerine modifieddate bilgisini 01.01.2000 yapacak trigger yazalım
+--instead of delete...silme işlemi yerine silme yapma bnm istediğimi yap.
+go
+create trigger trg_SilmeGuncellemeYap on humanresources.department
+instead of delete
+as
+begin
+declare @id int
+update HumanResources.Department set ModifiedDate='2000.01.01' from HumanResources.Department h join deleted d on h.DepartmentID= d.DepartmentID
+end
+
+
+delete from HumanResources.Department where DepartmentID=17
+
+select * from HumanResources.Department
+
+--after insert
+--siparis eklendikten sonra (after insert)
+--ihtiyaç durumunda trigger içerisinde 2 sorgu çalışabilir.
+
