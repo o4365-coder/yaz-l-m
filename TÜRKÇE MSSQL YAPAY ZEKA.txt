@@ -1,0 +1,1189 @@
+npm install -g @google/gemini-cli
+npm install -g @openai/codex
+npm install -g @anthropic-ai/claude-code
+
+-----------------------------------------
+
+http://www.gencayildiz.com/blog/northwind-turkce-versiyonu/
+
+--Veritabanı Olusturma 
+
+
+create database OkulDB
+
+use OkulDB
+
+
+--Departman 
+--Personeller
+
+
+--Identity(1,1) => Id yi sql otomatik versin 1 den baslasın 1 1 artsın ....
+--Primary Key => o tablonun benzersiz anahtarı olacattır yani tekrar edemez ve bos olamaz.
+
+
+create table Departmanlar
+(
+ DepartmanID int identity(1,1) primary key,
+ DepartmanAdi nvarchar(50) not null
+)
+
+
+create table Personelle
+(
+ PersonelID int identity(1,1) primary key,
+ Ad nvarchar(50) not null,
+ SoyAdi nvarchar(50) not null,
+ Maas decimal(10,2) not null,
+ DepartmanID int,
+ IseGirisTarihi date
+
+)
+
+select* from Departmanlar
+
+insert into Departmanlar(DepartmanAdi) values('İnsan Kaynakları')
+
+
+insert into Departmanlar (DepartmanAdi) values('Satis'),('Pazarlama')
+
+insert into Personeller (Ad,SoyAdi,Maas,DepartmanID,IseGirisTarihi) values('Ahmet','Yılmaz',45000,4,'2022-03-15'),('Ayse','Demir',100000,1,'2021-07-01'),('Mehmet','Kaya',51000,2,'2020-11-20'),('Fatma','Celik',48000,5,'2019-01-01')
+
+
+
+
+/*
+Var olan kayıtları değiştirmek istersek update komutu kullanırız. 
+
+update TabloAdi set Sutun ='YeniDeger' where Şart 
+
+Where yazmazsak eğer tablonun tamamını değiştirmiş oluruz mutlaka where kullanmalıyız..
+
+*/
+select* from Departmanlar
+
+select* from Personeller
+
+update Personeller set Maas=55000 where PersonelID=1
+
+
+update Personeller set Maas=75000,DepartmanID =4 where PersonelID=4
+
+--Satis Departmanındaki arkadaslara yuzde 10 zam yapıyoruz
+
+update Personeller set Maas=Maas*1.10 where DepartmanID=4
+
+
+/*
+Yazım Kalıbı 
+
+delete from TabloAdi where Şart
+
+update kuralın aynısı 
+
+where yazmazsan tüm satırları sileriz. where sart
+
+*/
+
+
+insert into Personeller (Ad,SoyAdi,Maas,DepartmanID,IseGirisTarihi) values('Fikret','Kaya',51000,2,'2020-11-20'),('Fatma','Celik',48000,2,'2019-01-01'),
+('Samet','Koç',51000,2,'2020-11-20'),('Fatma','Celik',48000,5,'2020-01-01'),
+('Şahin','Özdemir',51000,2,'2020-11-20'),('Fatma','Celik',48000,3,'2025-01-01')
+
+
+select* from Personeller
+
+--Hard Delete
+
+delete from Personeller where PersonelID =6
+
+delete from Personeller where PersonelID =8
+
+delete from Personeller where PersonelID =10
+
+
+alter table Personeller add IsActive bit not null default 1 -- herkes sisteme ilk eklendiginde otomatik 1 değer atansın burada 1 değeri personelin aktif oldugu anlamına gelir. 
+
+alter table Personeller add IsDeleted bit not null default 0 -- herkes sisteme ilk eklendiginde otomatik 0 olsun cunku sistemde yeni gelen biri silinmemiş olacagından dolayıdır. 
+
+
+
+--Soft Deleted. : Veri bütünlügümünüz bozulmaması icin soft delete kullanırız. 
+
+update Personeller set IsActive =0,IsDeleted=1 where PersonelID =9
+
+
+update Personeller set IsActive =0,IsDeleted=1 where PersonelID =7
+
+
+select* from Personeller where IsActive =0
+
+
+select* from Personeller where IsActive =1
+
+
+
+
+alter table Personeller add GeciciAlan nvarchar(100)
+
+
+--İlgili tablodan bir alan silmek icin drop komutu kullanılır 
+
+alter table Personeller drop column GeciciAlan
+
+--Drop Column alanı o sutundaki tüm veriyide siler geri donusu olmaz
+
+
+--Drop Table : tabloyu komple siler
+
+create table DenemeTablo (Id int,Aciklama nvarchar(50))
+
+
+select* from DenemeTablo
+
+
+drop table DenemeTablo
+
+
+truncate table DenemeTablo
+
+--Bir tablo baska bir tablo tarafından eğer Foreing Key ile baglanmıssa yani ona referans veriyorsa o tabloyu truncate ile silemeyiz sql buna izin vermez hata verir. 
+
+
+create table Siniflar
+(
+ SinifID int identity(1,1) primary key,
+ SinifAdi nvarchar(50) not null
+
+)
+
+
+create table Ogrenciler(
+
+OgrenciID int identity(1,1) primary key,
+AdSoyAd nvarchar(100) not null,
+SinifID int 
+
+constraint FK_Ogrenci_Sinif  foreign key (SinifID)
+  references Siniflar(SinifID)
+
+
+)
+
+
+insert into Siniflar(SinifAdi) values('9-A'),('9-B'),('9-C')
+
+SELECT* FROM Siniflar
+
+select* from Ogrenciler
+
+
+insert into Ogrenciler (AdSoyAd,SinifID) VALUES('Zeynep Ak',1),('Burak Tan',1),('Elif Su',2),('Can Yıldız',3)    --9-A
+
+
+insert into Ogrenciler (AdSoyAd,SinifID) values('Hayalet Ogrenci',99)
+
+/*
+Msg 547, Level 16, State 0, Line 177
+The INSERT statement conflicted with the FOREIGN KEY constraint "FK_Ogrenci_Sinif". The conflict occurred in database "OkulDB", table "dbo.Siniflar", column 'SinifID'.
+The statement has been terminated.
+*/
+
+truncate table Siniflar
+
+/*
+Msg 4712, Level 16, State 1, Line 185
+Cannot truncate table 'Siniflar' because it is being referenced by a FOREIGN KEY constraint.
+
+*/
+
+/*
+BlogDB
+*/
+
+/*
+Constraint : veritabanı seviyesinde kural uygulamadan bagımsız calısır. yani c# kodu hata yapsa bile veritabanu bozuk veriyi içeriye almaz.
+
+check: bir kosul koyar  => örnegin maas 0 dan kucuk olamaz.
+
+default : değer girilmezse bile otomatik hangi değer atanacaksa o değer atanır. 
+
+unique : o sutunda tekrar eden değer olamaz. her değer  benzersiz olmalıdır. 
+
+
+*/
+
+alter table Personeller add constraint CK_Maas_Pozitif check(Maas>=0)
+
+
+
+
+sp_helpconstraint  'Personeller'
+
+/*
+Constraint : veritabanı seviyesinde kural uygulamadan bagımsız calısır. yani c# kodu hata yapsa bile veritabanu bozuk veriyi içeriye almaz.
+
+check: bir kosul koyar  => örnegin maas 0 dan kucuk olamaz.
+
+default : değer girilmezse bile otomatik hangi değer atanacaksa o değer atanır. 
+
+unique : o sutunda tekrar eden değer olamaz. her değer  benzersiz olmalıdır. 
+
+
+*/
+
+alter table Personeller add constraint CK_Maas_Pozitif check(Maas>=0)
+
+
+
+
+sp_helpconstraint  'Personeller'
+
+
+select* from Personeller
+
+/*
+Unique => ilgili sutunda aynı değer iki kez girilemez her değer benzersiz olmalıdır burada primary key'e benziyor gibi olsada farkkı unique key null değer alabilir ancak primary null değer alamaz.
+
+*/
+
+create table Kullanicilar
+(
+KullaniciID int identity(1,1) primary key,
+KullaniciAdi nvarchar(50) not null,
+Email nvarchar(50),
+TcKimlik char(11)
+)
+
+
+alter table Kullanicilar add constraint UQ_Kullanici_Email unique(Email)
+
+alter table Kullanicilar add constraint UQ_Kullanici_TC unique(TcKimlik)
+
+
+select* from Kullanicilar
+
+insert into Kullanicilar (KullaniciAdi,Email,TcKimlik) VALUES('Ahmet','ahmet@firma.com','11111111111')
+
+
+insert into Kullanicilar (KullaniciAdi,Email,TcKimlik) VALUES('Ayşe','ayse@firma.com','22222222222')
+
+
+
+insert into Kullanicilar (KullaniciAdi,Email,TcKimlik) VALUES('Mehmet','ahmet@firma.com','33333333333')
+
+/*
+Msg 2627, Level 14, State 1, Line 247
+Violation of UNIQUE KEY constraint 'UQ_Kullanici_Email'. Cannot insert duplicate key in object 'dbo.Kullanicilar'. The duplicate key value is (ahmet@firma.com).
+The statement has been terminated.
+
+Completion time: 2026-06-28T15:15:16.4430731+03:00
+
+
+*/
+
+insert into Kullanicilar (KullaniciAdi,Email,TcKimlik) VALUES('Mehmet','mehmet@firma.com','11111111111')
+
+/*
+Msg 2627, Level 14, State 1, Line 259
+Violation of UNIQUE KEY constraint 'UQ_Kullanici_TC'. Cannot insert duplicate key in object 'dbo.Kullanicilar'. The duplicate key value is (11111111111).
+The statement has been terminated.
+
+Completion time: 2026-06-28T15:15:50.8882860+03:00
+
+*/
+
+
+--İlgili unique key kaldırmak istersek 
+
+alter table Kullanicilar drop constraint UQ_Kullanici_TC
+
+
+/*
+
+ Case when : sorgu içerisinde kosul (if/else)
+
+ if(mass<40000) etiket="Düşük maas"
+
+ sql'deki kullanım 
+
+  case 
+    when BrutMaas<40000 then 'Düşük'
+    when 
+    else
+    end -- şart blogunun bittigini belirtmemiz gerekmektredir 
+
+
+*/
+
+
+select* from Personeller
+
+
+select Ad,SoyAdi,Maas,
+   case 
+      when Maas<40000 then 'Düşük'
+      when Maas<55000 then 'Orta'
+      when Maas <0 then 'Maas Yok'
+      else 'Yüksek'
+      end as MaasSeviyesi
+from Personeller where IsDeleted =0
+
+
+/*
+Vize => 55  
+ Final =75   => 65   aa,ba,bb,bc,cc,dd,ff
+
+
+*/
+
+select Ad,SoyAdi, 
+ case
+   when IsActive=1 then 'Aktif'  --bit alanı oldugu icin true yada false 
+   else 'Pasif' 
+   end as Durum,
+case
+ when IsDeleted=1 then 'Silinmiş'
+  else 'Mevcut'
+  end as KayıtDurum
+from Personeller 
+
+
+select* from Personeller
+
+
+select* from Departmanlar
+
+
+select Ad,SoyAdi,DepartmanID,
+case DepartmanID
+ when 1 then 'Yazılım'
+ when 2 then 'Muhasebe'
+ when 3 then 'İnsan Kaynaklari'
+ when 4 then 'Satış'
+ when 5 then 'Pazarlama'
+ else 'Tanımsız'
+ end as DepartmanAdi
+from Personeller WHERE IsDeleted=0
+
+
+update Personeller
+ set Maas= Maas*
+  case when DepartmanID=1 then 1.20
+  when DepartmanID =2 then 1.15
+  else 1.10
+  end
+  where IsDeleted=0
+
+  --Normalizasyon kuralları 
+
+
+  use Northwind
+
+
+  select* from Urunler
+
+  SELECT* FROM Kategoriler
+
+  use OkulDB
+
+
+  select* from Personeller
+
+
+select* from Departmanlar
+
+
+/*
+
+Join : İki tabloyu birleştirme olarak ifade edilir. buradaki birleştirmek ortak sutun üzerinden birleştirilmelidir
+
+ Ornegin Personeller.DepartmanID = Departmanlar.DepartmanID
+
+
+ --İnner Join : iki tabloda karsılıgı olan satırları getirir. Personel DepartmanID'si Departmanlar'da eğer varsa gelir yoksa herhangi bir data gelmez. karsılık beklenir. 
+
+*/
+
+select p.Ad,p.SoyAdi,p.Maas,d.DepartmanAdi from Personeller p inner join Departmanlar d on p.DepartmanID =d.DepartmanID where IsDeleted=0
+
+
+
+
+select Personeller.Ad,Personeller.SoyAdi,Personeller.Maas,Departmanlar.DepartmanAdi from Personeller inner join Departmanlar  on Personeller.DepartmanID =Departmanlar.DepartmanID where IsDeleted=0
+
+
+use Northwind
+
+
+--Ürünleri kategori adi ile birlikte getirelim 
+
+
+select u.UrunAdi,u.BirimFiyati,u.HedefStokDuzeyi,k.KategoriAdi from Urunler u inner join Kategoriler k on u.KategoriID=k.KategoriID
+
+
+--Urunleri tedarikci adi ile birlikte getirelim 
+
+select u.UrunAdi,u.BirimFiyati,u.HedefStokDuzeyi,t.SirketAdi from Urunler u inner join Tedarikciler t on u.TedarikciID = t.TedarikciID 
+
+--Musterilerin verdikleri satislari getirelim 
+
+select m.MusteriAdi,s.SatisID from Musteriler m inner join Satislar s on m.MusteriID=s.MusteriID
+
+--Hangi personel hangi satisi yapmıstır? 
+
+select p.Adi,p.SoyAdi,s.SatisID,s.SatisTarihi from Personeller p inner join Satislar s on p.PersonelID = s.PersonelID
+
+
+
+
+--Kategorisi Beverages olan urunleri getirelim  
+
+
+select u.UrunAdi,u.BirimFiyati,u.HedefStokDuzeyi,k.KategoriAdi from Urunler u inner join Kategoriler k on u.KategoriID=k.KategoriID where KategoriAdi='Beverages'
+
+
+--Fiyatı 30 dan buyuk urunleri kategori adi ile birlikte getirelim ama pahalıdan ucuza sıralayalım 
+select u.UrunAdi,u.BirimFiyati,u.HedefStokDuzeyi,k.KategoriAdi from Urunler u inner join Kategoriler k on u.KategoriID=k.KategoriID where BirimFiyati >30 order by u.BirimFiyati desc
+
+
+--Ulkesi Germany olan musterilerin satıslarını getirelim 
+
+ --=> Musteriler,Satislar
+
+
+ 
+select m.MusteriAdi,s.SatisID,m.Ulke from Musteriler m inner join Satislar s on m.MusteriID=s.MusteriID where Ulke='Germany'
+
+--
+
+select u.UrunAdi,k.KategoriAdi,t.SirketAdi from Urunler u inner join Kategoriler k on u.KategoriID=k.KategoriID inner join Tedarikciler t on u.TedarikciID=t.TedarikciID
+
+--Hangi personel hangi ürünü satmıstır ? 
+
+
+select p.Adi,p.SoyAdi , u.UrunAdi,s.SatisID,s.SatisTarihi from Urunler u inner join [Satis Detaylari] sd on u.UrunID=sd.UrunID inner join Satislar s on s.SatisID =sd.SatisID inner join Personeller p on s.PersonelID=p.PersonelID
+
+
+select* from Urunler
+
+
+select* from Kategoriler 
+
+
+select* from [Satis Detaylari]
+
+--Her kategoride kaç adet ürün vardır ?=> Kategoriler,Urunler,count() group by 
+select k.KategoriAdi, count(u.UrunID) as Adet from Urunler u inner join Kategoriler k on u.KategoriID= k.KategoriID group by k.KategoriAdi order by Adet desc
+
+select* from Urunler
+
+--Her urunden toplam kaç adet satılmıs ? 
+
+select u.UrunID,u.UrunAdi,sum(sd.Miktar) as ToplamSatilan  from Urunler u inner join [Satis Detaylari] sd on u.UrunID= sd.UrunID where u.UrunID=11 group by u.UrunAdi ,u.UrunID order by ToplamSatilan desc
+
+
+
+select u.UrunID,u.UrunAdi,sum(sd.Miktar) as ToplamSatilan  from Urunler u inner join [Satis Detaylari] sd on u.UrunID= sd.UrunID  group by u.UrunAdi ,u.UrunID order by ToplamSatilan desc
+select* from [Satis Detaylari] where UrunID =11
+
+--Her musterinin toplam kaç adet satısı vardır 
+
+select m.MusteriAdi,count(s.SatisID) as SatisSayisi from Musteriler m inner join Satislar s on m.MusteriID=s.MusteriID group by m.MusteriAdi order by SatisSayisi desc
+
+/*
+adet => count 
+toplam  => sum 
+ortalam => avg
+en cok satis => max
+en az satis  => min
+
+
+*/
+
+/*
+
+Left Join : soldaki tablonun tümünü getirir. ancak sagda eşlesme yok ise eğer null getirir.
+
+inner : sadece eslesenler gelir
+left : sol tablonun hepsi + sagda yoksa null gelir.
+*/
+
+select* from Urunler
+
+
+select u.UrunAdi,t.SirketAdi from Urunler u inner join Tedarikciler t on u.TedarikciID = t.TedarikciID
+
+
+
+select u.UrunAdi,t.SirketAdi from Urunler u left join Tedarikciler t on u.TedarikciID = t.TedarikciID
+----------------------------------------------------------------------
+/*
+Yorum Satırı : Coklu yorum satırı
+
+*/
+
+--Yorum Satırı : tekli yorum satırı
+
+--SQL:structured query language: yapısal sorgulama dilidir. veritabanıyla konusma dilimizdir
+--Veriye okumak eklemek ve değiştirmek silmek icin kullanırız. 
+
+/*
+
+Select: veriyi okur getirir
+Insert :yeni kayıt ekler
+Update : var olanı değiştirir.
+Delete : kayıtı siler.
+*/
+
+
+select 'Metinsel İfade'
+select 3+2
+select 5
+select 7/3
+
+print 'Metinsel ifade'
+print 7/3
+
+select 'Merhaba'+'Dunya'
+
+--MerhabaDunya
+
+select 'Merhaba'+' '+'Dunya'
+
+select 7.2/5 
+
+
+select* from Urunler
+
+/*
+select: seç 
+* : hepsini tüm alanları
+from :den dan =>Urunlerden
+
+*/
+
+select* from Urunler where UrunAdi='Kiraz'
+
+
+
+select* from Urunler where UrunAdi='Chai'
+
+
+--Urunler tablosunda stogu 50 den buyuk olanları getir.
+
+select* from Urunler where HedefStokDuzeyi >50
+
+
+
+select* from Urunler where HedefStokDuzeyi <10
+
+
+--Fİyatı 20 den fazla ve kategorisi 1 olan urunleri getir.
+
+select* from Urunler where BirimFiyati >20 and KategoriID=1
+
+--Musteriler tablondan Berlin veya Marseille  olaları getir.
+
+
+select* from Musteriler where Sehir='Marseille' or Sehir='Berlin'
+
+select SirketAdi,MusteriAdi,MusteriUnvani from Musteriler where Sehir='Marseille' or Sehir='Berlin'
+
+
+--Between : aralık 
+
+---Fiyatı 10 ile 30 arasında olan urunleri getir.
+
+select* from Urunler where BirimFiyati between 10 and 30
+
+--In : içinde
+
+--Berlin ,México D.F.,Buenos Aires ,Nantes
+
+
+select* from Musteriler where Sehir in('Berlin','México D.F.','Buenos Aires','Nantes')
+
+--Adı a ile baslayan urunleri getir.
+
+select* from Urunler where UrunAdi like 'A%'
+
+-- İÇİNDE KEK GEÇEN URUNLERİ GETİR
+
+
+select* from Urunler where UrunAdi like '%kek%'
+
+--Adı z ile biten urunleri getir.
+
+
+select* from Urunler where UrunAdi like '%z'
+
+
+--Telefon numarası girilmemiş musterileri getirelim 
+
+select* from Musteriler where Telefon is null
+
+
+--Berlin'de olmayan musterileri getir.
+
+select* from Musteriler where Sehir <> 'Berlin'
+
+--Kategorisi 1 olan fiyatı 15-60 arası adı C ile baslamayan urunleri getirelim 
+
+select* from Urunler where KategoriID=1 and BirimFiyati between 15 and 60 and UrunAdi not like 'C%'
+
+
+-- Order by : gelen sonusları sıralar kucukten buyuge yada buyukten kucuge 
+
+--asc :=> a'dan z'ye
+--desc=> z'den a'ya sıralama yapar.
+
+select* from Urunler order by BirimFiyati
+
+select* from Urunler order by BirimFiyati desc
+
+
+select* from Urunler order by UrunAdi
+
+
+
+select* from Urunler order by UrunAdi desc
+
+--Berlin'deki musterileri ada göre sıralayalım 
+
+select* from Musteriler where Sehir ='Berlin' order by SirketAdi
+
+
+--Önce sehre göre (a-z) aynı sehirdekiler sirket adına göre sıralayalım 
+
+select* from Musteriler order by Sehir asc,SirketAdi asc
+
+
+
+select top 10 * from Urunler
+
+--En pahalı 5 ürünü getirin 
+
+select top 5 * from Urunler order by BirimFiyati desc
+
+
+---Stogu en az olan 3 urnu getirin 
+
+select top 5 * from Urunler order by HedefStokDuzeyi asc
+
+
+--Aggregate fonksiyonları
+
+/*
+ Count() kaç tane sayar tek tek 
+ SUm() toplam 
+ Avg() ortalama
+ Min() min
+ Max() max
+
+
+
+
+*/
+
+--Toplam kaç ürün var ? 
+
+select count(*) from Urunler
+
+
+select * from Urunler
+
+--Fiyatı 50 dolardan pahalı kaç adet ürün var
+
+select count(*) from Urunler where BirimFiyati>50
+
+--Depodaki toplam stok adedi nedir
+
+select sum(HedefStokDuzeyi) from Urunler
+
+
+--Urunlerin ortalama fiyatı nedir
+
+select avg(BirimFiyati)from Urunler
+
+
+select min(BirimFiyati) as EnUcuz from Urunler
+
+select max(BirimFiyati) as EnPahalı from Urunler
+
+
+
+---------------------------------------------
+#Kodlarımızı buradayazıyoruz...
+#Yorum satırı olarak yazdık ide bunu dikkate almaz
+
+#print("Merhaba Dünya")
+
+
+print("Toplam :",5+3)
+
+#Degisken: içine değer koydugumuz kutu olarak nitelendirmiştik. c#'taki tip belirlemiyoruz. python bunu kendisi anlıyor.Pyhhon
+#sağdaki tipe bakıp kendisi anlamaktadır. tipin ne oldugunu.
+
+ad="Ahmet"
+yas =25
+print(ad)
+print(yas)
+
+#Veri tipleri
+
+#int => tamsayi
+#float => ondalık sayi alır
+#str => metinsel veri tipi(string)
+#bool => true yada false alır içerisine
+
+ogrenci_mi=True
+type(True)
+type(3.14)
+
+#ad=input("Adınız Nedir ?")
+#print("Merhaba",ad)
+
+
+#yas=input("Yasınız")
+#yas=int(yas)
+#print("Gelecek Yıl Yaşınız",yas+1)
+
+
+a=10;
+b=3;
+print("Toplam",a+b)
+print("Fark",a-b)
+print("Çarpım",a*b)
+print("Bölüm",a/b)
+print("Kalan",a%b)
+print("Us",a**b)
+
+"""
+sayi1=int(input("1.Sayıyı Giriniz "))
+sayi2=int(input("2.Sayıyı Giriniz "))
+toplam=sayi1+sayi2
+print("Toplam",toplam)
+"""
+
+
+#Karar Yapılari/ if elif/else
+"""
+yas=int(input("Yaşınız"))
+if yas>=18:
+    print("Ehliyet Alabilirsiniz")
+else:
+    print("Ehliyet alamazsınız.")
+"""
+"""
+not_ =int(input("Notunuzu Giriniz "))
+if not_>=85:
+     print("AA")
+elif not_ >=70:
+    print("BB")
+elif not_>=50:
+    print("CC")
+else:
+    print("FF")
+"""
+"""
+yas=int(input("Yaş:"))
+if yas>=18 and yas<65:
+     print("Henüz emekli değilsiniz.")
+else:
+    print("Henüz calısma cağında değilsiniz.")
+"""
+"""
+yas=int(input("Yaş:"))
+bilet=input("Biletiniz varmı?(evet/hayır):")
+if yas>=18 and bilet=="evet": #and : sartlardan her ikisinin true olması gerekmektedir. eğer true değilse her iki sart false dönecektir.
+    print("Uçağa binebilirsiniz ")
+else:
+    print("Binemezsiniz")
+ 
+"""
+""" 
+ogrenci_mi=input("Öğrencimisiniz ? (evet/hayır):")
+emekli_mi=input("Emeklimisiniz ?(evet/hayır)")
+if ogrenci_mi=="evet" or emekli_mi=="evet":  #or : sartlardan en az birinin true olması durumunda ilgili sart gerçekleşir.
+    print("İndirim Kazandınız ")
+else:
+    print("İndirim Yok ")
+ """
+#while: sart saglandıgı sürece devam eder.
+sayac=1
+while sayac<=5:
+    print("Sayı:",sayac)
+    sayac=sayac+1
+
+#for  belli sayıda tekrar eder.
+for i in range(5):
+    print("Tur:",i)
+
+for i in range(1,6):
+    print(i)
+
+isimler =["Ahmet","Ayşe","Mehmet"]
+for isim in isimler:
+    print("Merhaba",isim)
+
+sayilar =[10,20,30,40,50]
+print(sayilar[0])
+print(sayilar[-1])
+print(sayilar[-2])
+print(len(sayilar))
+
+
+toplam=0
+for	sayi in sayilar:
+ toplam=toplam+sayi
+print("Toplam",toplam)
+
+
+sayilar=[34,12,78,45,9]
+enbuyuk=sayilar[0] #34
+enkucuk=sayilar[0] #34
+
+for sayi in sayilar:
+    if sayi>enbuyuk:
+        enbuyuk=sayi
+    if sayi<enkucuk:
+        enkucuk=sayi
+print("En Buyuk Sayi:",enbuyuk)
+print("En Kucuk Sayi:",enkucuk)
+print("En Buyuk Sayi:",max(sayilar))
+print("En Kucuk Sayi:",min(sayilar))
+"""
+isimler=["Ahmet","Ayşe","Mehmet"]
+aranan=input("Hangi kullanıcıyı arıyorsunuz ?").lower()
+
+isimler_kucuk=[isim.lower()for isim in isimler]
+
+if aranan in isimler_kucuk:
+    print(aranan,"listede var")
+else:
+    print(aranan,"listede yok")
+   """ 
+ 
+ #def=> define(tanımlama)
+   
+def selam_Ver():
+    print("Merhaba,Hoş geldiniz")
+   
+#parametreli hali
+
+def selam_Ver_Parametreli(ad):
+    print("Merhaba",ad)
+
+
+
+
+selam_Ver_Parametreli("Ahmet")
+selam_Ver()
+
+def topla(a,b):
+    return a+b
+
+
+sonuc =topla(5,3)
+print("Sonuc:",sonuc)
+
+
+sonuc =topla("alp","aslan")
+print("Sonuc:",sonuc) 
+    
+"""
+def not_Degerlendir(puan):
+    if puan>=85:
+      return "AA"
+    elif puan >=70:
+        return "BB"
+    elif puan >=50:
+        return "CC"
+    else:
+     return "Kaldı"
+    
+    
+ogrenci_sayisi=int(input("Kaç öğrenci var? "))
+for i in range(ogrenci_sayisi):
+     ad =input("öğrenci adını giriniz :")
+     puan=int(input("Puanı: "))
+     sonuc=not_Degerlendir(puan)
+     print(ad,"=>",sonuc)
+     print("----")
+"""
+
+def kvd_Ekle(fiyat):
+    kdv=fiyat*20/100
+    return fiyat+kdv
+
+print("Kdv'li Fiyat",kvd_Ekle(100))
+
+
+def cift_mi(sayi):
+    if sayi%2==0:
+        return "Çift"
+    else:
+        return "Tek"
+        
+print(cift_mi(10))
+print(cift_mi(7))
+    
+
+def list_Toplami(liste):
+    toplam=0
+    for sayi in liste:
+        toplam =toplam+sayi
+    return toplam
+
+def list_Ortalama(liste):
+  return list_Toplami(liste)/len(liste)
+
+
+
+notlar=[50,80,90,70]
+print("Toplam",list_Toplami(notlar))
+
+print("Ortalama",list_Ortalama(notlar))
+
+
+def topla(a,b):
+  return a+b
+
+def cikar(a,b):
+  return a-b
+
+def carp(a,b):
+  return a*b
+
+def bol(a,b):
+  if b==0:
+      return "Sıfıra Bölme İşlemi Yapılamaz"
+  else:
+       return a/b
+    
+    
+while True:
+      print("----------Hesap Makinası----------")
+      print("1- Toplama")
+      print("2- Çıkartma")
+      print("3- Çarpma")
+      print("4- Bölme")
+      print("5- Çıkış")
+      
+      secim=input("Seçiminiz: ")
+
+      if secim=="5":
+         print("Çıkış Yapılıyor")
+         break     #donguyu kır programdan cık
+
+      if secim not in["1","2","3","4"]:
+         print("Geçersiz Seçim Tekrar Deneyiniz")
+         continue #başa dön,tekrar menüyü göster
+         
+         
+      sayi1 =float(input("1.Sayıyı Giriniz :"))
+      sayi2 =float(input("2.Sayıyı Giriniz :"))
+
+      if secim=="1":
+           print("Sonuç :",topla(sayi1,sayi2))
+      elif secim=="2":
+           print("Sonuç :",cikar(sayi1,sayi2))
+      elif secim=="3":
+           print("Sonuç :",carp(sayi1,sayi2))
+      elif secim=="4":
+           print("Sonuç :",bol(sayi1,sayi2))
+      else:
+           print("Geçersiz İşlem")
+
+class BankaHesabi:
+   def __init__(self,sahip,bakiye):
+       self.sahip=sahip
+       self.bakiye=bakiye
+        
+        
+   def para_yatir(self,miktar):
+       self.bakiye=self.bakiye+miktar
+       print(miktar,"TL yatırıldı. Yeni bakiye",self.bakiye)
+        
+   def para_cek(self,miktar):
+       if miktar>self.bakiye:
+           print("Yetersiz Bakiye")
+       else:
+           self.bakiye=self.bakiye-miktar
+           print(miktar,"TL çekildi,Kalan:",self.bakiye)
+               
+
+hesap=BankaHesabi("Ahmet",1000)
+hesap.para_yatir(500)
+hesap.para_yatir(500)
+hesap.para_yatir(750)
+hesap.para_cek(2750)
+
+class Ogrenci:
+    def __init__(self,ad):
+        self.ad=ad
+        self.notlar=[]
+    def not_ekle(self,puan):
+        self.notlar.append(puan)
+    def ortalama(self):
+        return sum(self.notlar)/len(self.notlar)
+
+#len : uzunluk alır
+#sum: verilen değerlerin toplamını alır.
+    
+ogr=Ogrenci("Ayşe")
+ogr.not_ekle(80)
+ogr.not_ekle(90)
+ogr.not_ekle(70)
+print(ogr.ad,"ortalamasi",ogr.ortalama())
+
+list=["ahmet",25,"Ankara"]
+print(list[0])
+print(list[1])
+print(list[2])
+print("------------------------------------------------")
+kisi={
+    "ad":"Ahmet",
+    "yas":25,
+    "sehir":"Ankara" 
+}
+kisi["meslek"]="Mühendis"
+kisi["yas"]=26
+
+
+print(kisi["ad"])
+print(kisi["yas"])
+print(kisi["sehir"])
+
+print(kisi)
+
+
+del kisi["sehir"]
+
+
+print(kisi)
+
+
+if "ad" in kisi:
+    print("ad bilgisi var")
+    
+    
+for anahtar,deger in kisi.items():
+    print(anahtar,"=> ",deger)
+
+
+
+
+-----------------------------------
+
+using GenelKultur.Auth;
+
+namespace GenelKultur
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            /*
+             
+             Degiskenler : Verileri gecici süre tuttugumuz veri kutusudur. 
+             
+             */
+
+           // int yas = 25; //tam sayi
+            string adi = "Ahmet"; //string tiplerde metinsel veri tutarız string içerisinde sayısal veri tutulmaz.
+            string soyadi = "Çağan";
+            bool aktifMi = true; // bool içerisine true yada false değer alan veri tipidir. true : dogru anlamına gelir. false: yanlıs anlamına gelir örnegin kisinin yaşı 18 mi? 18 ise true degilse false diyebiliriz.
+            byte kucuk = 0; // byte içerisinde sadece 0 ile 255 arasında değer tutar.
+
+            char karakter = 'A'; //char tek karakter tutan veri tipidir. içerisinde hem say hem karakterh hemde metinsel ifadeyi tek karakter olmak sartıyla içerisinde barındırır.
+            var degisken = "Merbaha";
+            var tamSayi = 1;
+            var karar = true;
+            var character = 'A';// var her tipten veriyi içerisinde barındırabilir. 
+
+            double ondalik1 = 25.5; //matematiksel işlemler icin kullanılır 
+            decimal ondalik2 = 25.7m; // parasal işlemler icin kullanılır daha fazla hassasiyet ister
+            float ondalik3 = 25.9f;//gramaj islemlerinde kullanılırız. 
+            // double,decimal ve float : içerisine ondalık sayi haricinde tamsayida alabilir. 
+            float tamSayi2 = 75;
+
+            ////Not : aynı scope içerisinde eğer yaptıgımız bir degisken tanımı var ise tekrar aynı değisken tanımı yapamayız. 
+
+            //Console.WriteLine("Lütfen Adınızı Giriniz ");
+            //string isim = Console.ReadLine();
+
+            //Console.WriteLine("Lütfen Yaşınızı Giriniz ");
+            //int age = Convert.ToInt32(Console.ReadLine());
+            //Console.WriteLine("Merhaba İsminiz :{0} Yaşınız :{1} ", isim, age);
+
+
+
+            /*
+             * if: ingilizce karsılıgı eğer anlamına eğer su gerçekleşirse su olsun gibi operasyonlar gerçekleştirir. burada tamamen programın işleyisin akısını değiştiririz
+             *
+             *else : değilse  anlamına gelir eğer if ile gerçekleseyen sartın sonucunda else bloguna gider kullanıcıya yada sart blogunun ne yapmasını istersen gider onu gerçeklestirir. 
+             *
+             if sartının dönüşü hermzan true yada falsedır. 
+             
+            == : eşit eşit 18==18   : true
+            < :kucuk mu ?  18<18 : false
+            > : buyukmu ? 18>18 : false
+            <= : kucuk yada eşitmi 18<=18 true
+            >= :büyük yada eşit mi ?  18>=18:true
+            != : eşit degil mi :18!=18 : false
+            ------------------------------------------
+            
+            || : veya operatoru sartlardan sadece 1 tanesi true olmasında durumunda true döner ancak sartlardan her ikisi false ise false döner
+             && : ve operatoru sartlardan her ikiside true olması durumunda true doner eğer bir tanesi false ise false döner 
+
+            kullaniciAdi=="admin" || sifre="1234" => true login girişlerde asla || veya operatoru kullanmamlıyım .
+
+            kullaniciAdi=="admin" && sifre="1234" => her iki bilginin kesin olarak true olması lazım kullanıcı her iki bilgiyide dogru girmesi sarttır.
+
+            */
+
+            int yas = 18;
+            if (yas>=18)
+            {
+                Console.WriteLine("Ehliyet alabilir");
+            }
+            else
+            {
+                Console.WriteLine("Ehliyet alamaz.");
+            }
+
+            //Login Sistemi - SOLID Prensiplerine göre refactor edilmiş
+
+            /*
+             Solid : yazılımı daha düzenli değiştirilebilir ve büyütülebilir yapmak icin kullanılan 5 tasarım prensibidir. 
+             Solid : kısaca kodunun corba olmasını engeller. 
+             
+            S : Single Reponsibililty (Tek Sorumluluk )
+
+            --Bir class sadece 1 iş yapmalıdır. 
+
+            o: Open Closed 
+              Kod değişmeden genişletilebilir olmalıdır. 
+              mevcut kodu bozma 
+              yeni özellik ekle 
+             
+            l : liskov substitution : alt sınıf üst sınıfın yerine sorunsuz geçebilmelidir. 
+
+            I . : Interface Segregation : tek büyük interface yerine kücük parcalara bölmek gerektigini savunur  yani her seyden sorumlu tek interface olmasın 
+
+            D: Direk sınıfa değil interface bagımlı ol 
+             */
+
+            // Dependency Injection
+            IUserRepository userRepository = new HardcodedUserRepository();
+            IAuthenticationService authenticationService = new AuthenticationService(userRepository);
+            AuthenticationUI authUI = new AuthenticationUI(authenticationService);
+
+            // Login işlemi
+            authUI.Login();
+
+        }
+    }
+}
